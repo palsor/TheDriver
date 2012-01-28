@@ -47,9 +47,9 @@ void Compass::update() {
   if (i==6)  // All bytes received?
   {
     // MSB byte first, then LSB, X,Y,Z
-    magRaw[0] = ((((int)buff[0]) << 8) | buff[1]);    // X axis (internal y axis)
-    magRaw[1] = ((((int)buff[2]) << 8) | buff[3]);    // Y axis (internal x axis)
-    magRaw[2] = ((((int)buff[4]) << 8) | buff[5]);    // Z axis
+    magRaw[0] = ((((int)buff[0]) << 8) | buff[1]);    // X axis
+    magRaw[1] = ((((int)buff[4]) << 8) | buff[5]);    // Y axis
+    magRaw[2] = ((((int)buff[2]) << 8) | buff[3]);    // Z axis
     
   }
   else {
