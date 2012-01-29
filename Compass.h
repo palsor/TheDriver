@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "Config.h"
+#include "Externs.h"
 
 // Mag settings
 #define READ_MODE 0x01 // 1 = continuous mode, 0 = normal mode

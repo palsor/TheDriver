@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "Waypoint.h"
 #include "Config.h"
+#include "Externs.h"
 
 class Navigator {
   public:

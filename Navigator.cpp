@@ -24,12 +24,12 @@ void Navigator::updateDestination(Waypoint* curLocation) {
     }
   }  
   
-  #if (DEBUG_LEVEL > 0)
-    Serial.print("Navigator::updateDestination destIdx: ");
-    Serial.print(destIdx,DEC);
-    Serial.print(", distance: ");
-    Serial.print(distance,DEC);
-    Serial.print(", ");
+  #if (NAV_DEBUG > 0)
+    softSerial.print("destIdx: ");
+    softSerial.print(destIdx);
+    softSerial.print("   distance: ");
+    softSerial.print(distance);
+    softSerial.print("   ");
     track[destIdx].print();
   #endif
 }

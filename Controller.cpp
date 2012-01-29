@@ -29,17 +29,13 @@ void Controller::updateSteering(float curMagBearing, float curGpsBearing, float 
   // clip angle and update servo
   steeringServo.write(X_CENTER_ANGLE + xTrim + clipServoAngle(deltaAngle));
   
-  if(DEBUG_LEVEL > 0) {
-    Serial.print("Controller::updateSteering curMagBearing, curGpsBearing, targBearing, deltaAngle, clipServoAngle:");
-    Serial.print(curMagBearing, DEC);
-    Serial.print(", ");
-    Serial.print(curGpsBearing, DEC);
-    Serial.print(", ");
-    Serial.print(targBearing, DEC);
-    Serial.print(", ");
-    Serial.print(deltaAngle, DEC);
-    Serial.print(", ");
-    Serial.println(clipServoAngle(deltaAngle), DEC);
+  if(CONTROLLER_DEBUG) {
+    softSerial.print("TargBearing: ");
+    softSerial.print(targBearing);
+    softSerial.print("   deltaAngle: ");
+    softSerial.print(deltaAngle);
+    softSerial.print("   clipServoAngle: ");
+    softSerial.println(clipServoAngle(deltaAngle));
   }
 } 
 

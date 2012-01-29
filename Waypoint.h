@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#include "Externs.h"
+
 class Waypoint {
   public:
     Waypoint();

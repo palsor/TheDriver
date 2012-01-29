@@ -1,6 +1,7 @@
 #include <Servo.h>
 #include <Wire.h>
 #include <TinyGPS.h>
+#include <SoftwareSerial.h>
 #include "Sensors.h"
 #include "Controller.h"
 #include "Navigator.h"
@@ -10,7 +11,11 @@ Sensors sensors;
 Controller controller;
 Navigator navigator;
 
+SoftwareSerial softSerial(SOFT_SERIAL_RX, SOFT_SERIAL_TX);
+
 void setup() {
+  softSerial.begin(SOFT_SERIAL_RATE);
+  softSerial.listen();
   Serial.begin(SERIAL_RATE);
   controller.init();
   sensors.init();

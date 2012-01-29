@@ -13,7 +13,7 @@ void GPS::init() {
   
   if (WAIT_FOR_GPS_LOCK) {
     // wait for GPS to lock
-    Serial.println("Waiting for GPS to initialize...");
+    softSerial.println("Waiting for GPS to initialize...");
   
     long lat, lon;
     unsigned long fix_age;
@@ -31,7 +31,7 @@ void GPS::init() {
       } // if
     }// while
   
-    Serial.println("GPS locked...");
+    softSerial.println("GPS locked...");
   }
 }
 
@@ -61,12 +61,11 @@ void GPS::update() {
       speed = (float)(gpsParser.speed()) / 100; // knot
       
       #if (GPS_DEBUG)
-        Serial.println("");
-        Serial.print("GPS::update gpsCourse, gpsSpeed, ");
-        Serial.print(bearing, DEC);
-        Serial.print(", ");
-        Serial.print(speed, DEC);
-        Serial.print(", ");
+        softSerial.print("gpsCourse: ");
+        softSerial.print(bearing);
+        softSerial.print("   gpsSpeed: ");
+        softSerial.print(speed);
+        softSerial.print("   ");
         curLocation.print();
       #endif
     }

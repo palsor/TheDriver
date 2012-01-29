@@ -7,6 +7,7 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include "Config.h"
+#include "Externs.h"
 
 class Controller {
   public:

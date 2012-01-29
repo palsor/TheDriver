@@ -47,9 +47,9 @@ void Compass::update() {
   if (i==6)  // All bytes received?
   {
     // MSB byte first, then LSB, X,Y,Z
-    magRaw[0] = ((((int)buff[0]) << 8) | buff[1]);    // X axis
-    magRaw[1] = ((((int)buff[4]) << 8) | buff[5]);    // Y axis
-    magRaw[2] = ((((int)buff[2]) << 8) | buff[3]);    // Z axis
+    magRaw[0] = (float)((((int)buff[0]) << 8) | buff[1]);    // X axis
+    magRaw[1] = (float)((((int)buff[4]) << 8) | buff[5]);    // Y axis
+    magRaw[2] = (float)((((int)buff[2]) << 8) | buff[3]);    // Z axis
     
   }
   else {
@@ -67,7 +67,7 @@ void Compass::update() {
   magBearing = magBearing * 180 / 3.14159;
   
   #if (COMPASS_DEBUG)
-    Serial.print("Compass::getMagBearing Mag bearing: ");
-    Serial.println(magBearing);
+    softSerial.print("magBearing: ");
+    softSerial.println(magBearing);
   #endif
 }

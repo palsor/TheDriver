@@ -22,10 +22,10 @@ void Waypoint::setLocation(float newLat, float newLon) {
 // print - print out debug output of the waypoint
 //
 void Waypoint::print() {
-  Serial.print("lat: ");
-  Serial.print(lat, DEC);
-  Serial.print(", lon: ");
-  Serial.println(lon, DEC);  
+  softSerial.print("lat: ");
+  softSerial.print(lat);
+  softSerial.print("   lon: ");
+  softSerial.println(lon);  
 }
 
 float Waypoint::bearingToTarget(Waypoint* target) {

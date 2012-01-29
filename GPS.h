@@ -6,6 +6,7 @@
 
 #include "Waypoint.h"
 #include "Config.h"
+#include "Externs.h"
 
 #define MTK_SET_BINARY	"$PGCMD,16,0,0,0,0,0*6A\r\n"
 #define MTK_SET_NMEA	"$PGCMD,16,1,1,1,1,1*6B\r\n"
