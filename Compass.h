@@ -21,10 +21,7 @@ class Compass {
   public:
     Compass();
     void init();
-    float getMagBearing();
     void update();
-  private:
-    float magBearing;
 };
 
 #endif

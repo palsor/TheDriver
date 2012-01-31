@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <TinyGPS.h>
 
-#include "Waypoint.h"
 #include "Config.h"
 #include "Externs.h"
 
@@ -22,16 +21,9 @@ class GPS {
   public:
     GPS();
     void init();
-    float getBearing();
-    float getSpeed();
-    float getHorzDil();
-    Waypoint* getCurLocation();
     void update();
   private:
     TinyGPS gpsParser;
-    Waypoint curLocation;
-    float bearing;
-    float speed;
 };
 
 #endif

@@ -18,19 +18,12 @@ void Compass::init() {
 }
 
 //
-// getter and setters
-//
-float Compass::getMagBearing() { return magBearing; }
-
-//
 // update - read new data from the compass
 //
 void Compass::update() {
   int i = 0;
   byte buff[6];
-  
   float magRaw[3];
-  float heading;
 
   Wire.beginTransmission(COMPASS_ADDRESS); 
   Wire.write(DATA_ADDRESS);
@@ -53,21 +46,19 @@ void Compass::update() {
     
   }
   else {
-    Serial.println("!ERR: Mag data");
+    errorData.compassReadError = true;
   }
 
   // calculate heading
-  magBearing = atan2(magRaw[1], magRaw[0]);
+  float tempBearing = atan2(magRaw[1], magRaw[0]);
   
   // make heading always between 0 and 2PI
-  if (magBearing < 0)
-    magBearing += 2 * 3.14159;
+  if (tempBearing < 0)
+    tempBearing += 2 * 3.14159;
   
-  // convert heading to degrees  
-  magBearing = magBearing * 180 / 3.14159;
+  // convert heading to degrees and apply magnetic declination  
+  tempBearing = (tempBearing * 180 / 3.14159) + MAG_DECLINATION;
   
-  #if (COMPASS_DEBUG)
-    softSerial.print("magBearing: ");
-    softSerial.println(magBearing);
-  #endif
+  // copy to data structure
+  sensorData.magBearing = tempBearing;
 }

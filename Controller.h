@@ -13,7 +13,7 @@ class Controller {
   public:
     Controller();
     void init();
-    void updateSteering(float curBearing, float curGpsBearing, float targBearing, float gpsSpeed);
+    void update();
     
   private:
     void updateControlBearing(float curMagBearing, float curGpsBearing, float targBearing);  // calculate control bearing
@@ -21,7 +21,6 @@ class Controller {
     int clipServoAngle(int angle);  // apply mechanical limits
     Servo steeringServo;
     int xTrim; // trim to get wheels/rudder straight
-    int controlBearing;  // mag bearing controller is trying to hold
 };
 
 #endif

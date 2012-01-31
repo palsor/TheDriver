@@ -12,38 +12,28 @@ void Controller::init() {
   steeringServo.attach(SERVO_PIN);
   steeringServo.write(X_CENTER_ANGLE);  // init servo to mechanical center
   xTrim = 0;  // init trim to 0
-  controlBearing = 0;  // init control bearing
 } 
 
 //
 // updateSteering - updates the servo for the front wheels, accounting for mechanical limits
 //
-void Controller::updateSteering(float curMagBearing, float curGpsBearing, float targBearing, float gpsSpeed) {
+void Controller::update() {
   
   // calculate bearing to control to
-  updateControlBearing(curMagBearing, curGpsBearing, targBearing);
+  updateControlBearing(sensorData.magBearing, sensorData.gpsBearing, navData.targBearing);
   
   // calculate angle to turn to
-  int deltaAngle = (gpsSpeed < GPS_MIN_SPEED_THRESHOLD) ? 0 : calculateDeltaBearingAngle(curGpsBearing, controlBearing);   // note transition from float bearings to int angle for servo control
+  int deltaAngle = calculateDeltaBearingAngle(navData.controlBearing, navData.targBearing);   // note transition from float bearings to int angle for servo control
   
   // clip angle and update servo
   steeringServo.write(X_CENTER_ANGLE + xTrim + clipServoAngle(deltaAngle));
-  
-  if(CONTROLLER_DEBUG) {
-    softSerial.print("TargBearing: ");
-    softSerial.print(targBearing);
-    softSerial.print("   deltaAngle: ");
-    softSerial.print(deltaAngle);
-    softSerial.print("   clipServoAngle: ");
-    softSerial.println(clipServoAngle(deltaAngle));
-  }
 } 
 
 //
 // updateControlBearing - calculate new controlBearing to hold including damping
 //
 void Controller::updateControlBearing(float curMagBearing, float curGpsBearing, float targBearing) {
-  controlBearing = targBearing;
+  navData.controlBearing = curMagBearing;
 }
 
 //

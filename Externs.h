@@ -1,8 +1,11 @@
 #ifndef EXTERNS_H
 #define EXTERNS_H
 
-#include <SoftwareSerial.h>
+#include "Structs.h"
 
-extern SoftwareSerial softSerial;
+extern SensorData sensorData;
+extern NavData navData;
+extern ErrorData errorData;
+extern DebugData debugData;
 
 #endif
