@@ -1,6 +1,6 @@
 #include "Communication.h"
 
-// quick test to see what happens
+// quick test to see what happens, now part 2
 
 //
 // constructor
