@@ -15,8 +15,8 @@ class Navigator {
   private:
     void updateDestination();  // Checks distance and sets destination
     Waypoint track[MAX_WAYPOINTS]; // Array of waypoint objects
-    int maxValidIdx;  
-    int destIdx;
+    int maxValidIdx;  // max valid index of waypoints
+    int destIdx;  // current destination index (next waypoint)
 };
 
 #endif
