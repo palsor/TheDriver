@@ -1,10 +1,11 @@
 #include "Sensors.h"
 
-Sensors::Sensors() : gps(), compass() {}
+Sensors::Sensors() : gps(), compass(), mpu() {}
 
 void Sensors::init() {
   gps.init();
-  compass.init();  
+  compass.init();
+  mpu.init();  
 }
 
 //
@@ -13,4 +14,5 @@ void Sensors::init() {
 void Sensors::update() {
     compass.update();
     gps.update();
+    mpu.update();
 }

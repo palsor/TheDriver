@@ -1,5 +1,6 @@
 #include <Servo.h>
 #include <Wire.h>
+#include <SPI.h>
 #include <TinyGPS.h>
 #include <SoftwareSerial.h>
 #include "Sensors.h"
