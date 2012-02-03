@@ -5,6 +5,7 @@
 
 extern SensorData sensorData;
 extern NavData navData;
+extern PilotData pilotData;
 extern ErrorData errorData;
 extern DebugData debugData;
 

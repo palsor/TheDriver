@@ -6,6 +6,11 @@ struct Waypoint {
   float longitude;
 };
 
+struct Vector {
+  float direction;
+  float magnitude;
+};
+
 struct SensorData {
   float magBearing;   
   float gpsBearing;   
@@ -22,17 +27,25 @@ struct SensorData {
   float gyroZRate;
   float gpsAltitude;
   float pressAltitude;
-  float airspeed;
+  float airSpeed;
 };
 
 struct NavData {
-  float targBearing;
-  float targDistance;
-  float controlBearing;
-  int targPitch;
-  int targYaw;
-  int targRoll;
-  int targThrottle; 
+  Vector curDistance;  // holds distance/bearing to next waypoint
+  Vector curGroundSpeed;  // holds gpsSpeed/gpsBearing
+  Vector curAirSpeed;  // holds airspeed/magBearing
+  Vector curWindSpeed;  // calculated from groundSpeed - airSpeed
+  Vector targetAirSpeed;  // desired heading in plane reference
+  float deltaAirSpeed;  // speed change fed to Pilot
+  float deltaAltitude;  // altitude change fed to Pilot
+  float deltaBearing;  // bearing change fed to Pilot
+};
+
+struct PilotData {
+  float throttleValue;
+  float pitchValue;
+  float yawValue;
+  float rollValue;
 };
 
 struct ErrorData {
@@ -46,6 +59,7 @@ struct DebugData {
   unsigned long mainLoopIterations;
   unsigned long sensorUpdates;
   unsigned long navUpdates;
+  unsigned long navErrors;
   unsigned long sensorAvgDelayTime;
   unsigned long sensorAvgRunTime;
   unsigned long sensorWorstCaseDelayTime;
