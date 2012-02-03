@@ -31,21 +31,21 @@ struct SensorData {
 };
 
 struct NavData {
-  Vector curDistance;  // holds distance/bearing to next waypoint
-  Vector curGroundSpeed;  // holds gpsSpeed/gpsBearing
-  Vector curAirSpeed;  // holds airspeed/magBearing
-  Vector curWindSpeed;  // calculated from groundSpeed - airSpeed
-  Vector targetAirSpeed;  // desired heading in plane reference
+  Vector curDistance;  // calculated distance/bearing to next waypoint
+  Vector curGroundSpeed;  // created from gpsSpeed/gpsBearing
+  Vector curAirSpeed;  // created from airspeed/magBearing
+  Vector curWindSpeed;  // calculated from curGroundSpeed - curAirSpeed
+  Vector targetAirSpeed;  // calculated desired heading in plane reference with normalized speed
   float deltaAirSpeed;  // speed change fed to Pilot
   float deltaAltitude;  // altitude change fed to Pilot
   float deltaBearing;  // bearing change fed to Pilot
 };
 
 struct PilotData {
-  float throttleValue;
-  float pitchValue;
-  float yawValue;
-  float rollValue;
+  float throttleValue;  // throttle value sent to controller
+  float pitchValue;  // pitch value sent to controller
+  float yawValue;  // yaw value sent to controller
+  float rollValue;  // roll value sent to controller
 };
 
 struct ErrorData {

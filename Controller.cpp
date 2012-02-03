@@ -5,8 +5,9 @@
 //
 Controller::Controller() {}
 
+
 //
-// init - do any required setup
+// creates hardware control objects and initializes to safe values
 //
 void Controller::init() {
 
@@ -22,11 +23,11 @@ void Controller::init() {
 //  rollServo.attach(ROLL_SERVO_PIN);
 //  rollServo.write(0);  // init servo to 0
 
-
 } 
 
+
 //
-// updateSteering - updates the servo for the front wheels, accounting for mechanical limits
+// send new signals to servos and motor
 //
 void Controller::update() {
   applyThrottleValue();
@@ -35,18 +36,34 @@ void Controller::update() {
   applyRollValue();
 } 
 
+
+//
+// applies throttleValue setting to throttle control hardware
+//
 void Controller::applyThrottleValue() {
-//  throttleServo.write(map(round(throttleValue),0,99,0,359);
+//  throttleServo.write(map(round(pilotData.throttleValue),0,99,0,359);
 }
 
+
+//
+// applies pitchValue setting to pitch control hardware
+//
 void Controller::applyPitchValue() {
-//  pitchServo.write(map(round(pitchValue),0,99,0,359);
+//  pitchServo.write(map(round(pilotData.pitchValue),0,99,0,359);
 }
 
+
+//
+// applies yawValue setting to yaw control hardware
+//
 void Controller::applyYawValue() {
   yawServo.write(map(round(pilotData.yawValue),0,99,0,359));
 }
 
+
+//
+// applies rollValue setting to roll control hardware
+//
 void Controller::applyRollValue() {
-//  rollServo.write(map(round(rollValue),0,99,0,359);
+//  rollServo.write(map(round(pilotData.rollValue),0,99,0,359);
 }

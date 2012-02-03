@@ -50,6 +50,7 @@ void setup() {
 void loop() {
   sensors.update(); // read from the sensors
   navigator.update(); // update navigation calculations
+  pilot.update();  // update plane controls based on desired navigation
   controller.update(); // send new signals to servos and motor
   
   unsigned long curTime = millis();  
