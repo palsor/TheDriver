@@ -14,14 +14,26 @@ class Navigator {
     void update();   // update navigation calculations
     
   private:
-    Waypoint waypoint[MAX_WAYPOINTS]; // Array of waypoint objects that forms course
-    Vector courseDistance[MAX_WAYPOINTS];  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i];
-    int maxValidNavIdx;  // max valid index of waypoints & courseDistances
-    int curNavIdx;  // current index (next destination waypoint and current courseDistance)   
+    Waypoint course[MAX_WAYPOINTS-1]; // Array of waypoints that form the course
+    Vector courseDistance[MAX_WAYPOINTS-1];  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
+    Waypoint hold[HOLD_PATTERN_WAYPOINTS-1];  // Array of waypoints that create a holding pattern course around the course origin
+    Vector holdDistance[HOLD_PATTERN_WAYPOINTS-1];  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
+    int maxValidCourseIdx;  // max valid index of waypoints & courseDistances
+    int curCourseIdx;  // current index (next destination waypoint and current courseDistance)   
+    int maxValidHoldIdx;  // max valid index of waypoints & courseDistances
+    int curHoldIdx;  // current index (next destination waypoint and current courseDistance)   
     void updateDistanceVectors();  // updates curDistance
     void updateSpeedVectors();  // updates ground/air/windSpeed
     boolean advanceWaypoint();  // checks if navigation should advance to the next waypoint (true=arrived/advance false=continue navigation)
     void calcPilotInputs();  // calculates deltas between current and desired airSpeed altitude and bearing
+    void updateState();  // navigation state machine
+    void calcHoldPattern(Waypoint w);  // creates a holdPattern and holdPatternDistance arrays around the supplied Waypoint w
+    void calcCourseDistance();  // populates courseDistance vectors from course waypoints
+    
+    // dynamics
+    float nomAirSpeed;
+    float minAirSpeed;
+    float cruiseAltitude;
     
     // math
     float calcMinimumAngle(float curBearing, float targBearing);  // calculates a minimum angle between bearings. The result is always between -179 and 180 degrees

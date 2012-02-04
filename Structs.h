@@ -31,6 +31,9 @@ struct SensorData {
 };
 
 struct NavData {
+  int navState;  // current state of navigation state machine
+  int navPrevState;  // previous state of navigation state machine
+  unsigned long lastStateTransitionTime;  // last navigator state transition time
   Vector curDistance;  // calculated distance/bearing to next waypoint
   Vector curGroundSpeed;  // created from gpsSpeed/gpsBearing
   Vector curAirSpeed;  // created from airspeed/magBearing
@@ -59,7 +62,6 @@ struct DebugData {
   unsigned long mainLoopIterations;
   unsigned long sensorUpdates;
   unsigned long navUpdates;
-  unsigned long navErrors;
   unsigned long sensorAvgDelayTime;
   unsigned long sensorAvgRunTime;
   unsigned long sensorWorstCaseDelayTime;

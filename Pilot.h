@@ -9,7 +9,7 @@ class Pilot {
   public:
     Pilot();
     void init();
-    void update();
+    void update();  // update plane controls based on desired navigation
     
   private:
     void updateSpeedControl();

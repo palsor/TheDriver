@@ -32,10 +32,22 @@
 
 // Navigator controls
 #define MAX_WAYPOINTS 7
-#define INVALID_NAV_IDX -1
-#define USE_CURLOC -1000
-#define ARRIVED_THRESHOLD 0  // 100 ft in km
-#define GPS_MIN_SPEED_THRESHOLD 0.8689  // 1 mph in 100ths of knots
+#define HOLD_PATTERN_WAYPOINTS 4
+#define HOLD_PATTERN_RADIUS 0.001
+#define NAV_STATE_END -3
+#define NAV_STATE_GLIDE -2
+#define NAV_STATE_RECOVER -1
+#define NAV_STATE_START 0
+#define NAV_STATE_TAKEOFF 1
+#define TAKEOFF_TIME 3000  // ms
+#define NAV_STATE_CLIMB 2
+#define NAV_STATE_NAVIGATE 3
+#define INVALID_NAV -1000
+#define ARRIVED_THRESHOLD 0.0001
+
+// dynamics
+#define CLIMB_PITCH 15
+#define RECOVER_PITCH -15
 
 // mechanical controls
 #define YAW_CENTER_ANGLE 90  // approximate steering on-center angle for servo

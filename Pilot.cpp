@@ -9,7 +9,7 @@ void Pilot::init() {
 }
 
 //
-// update - calculate new nav data
+// update plane controls based on desired navigation
 //
 void Pilot::update() {
   updateSpeedControl();

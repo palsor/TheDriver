@@ -8,28 +8,33 @@ Navigator::Navigator() {
 // initializes navigation indexes to known invalid states
 //
 void Navigator::init() {
-  curNavIdx = INVALID_NAV_IDX;
-  maxValidNavIdx = INVALID_NAV_IDX;
+  curCourseIdx = INVALID_NAV;
+  maxValidCourseIdx = INVALID_NAV;
+  curHoldIdx = INVALID_NAV;
+  maxValidHoldIdx = INVALID_NAV;
+  navData.navState = NAV_STATE_START;
 }
 
 
 //
-// creates new entry in the waypoint and courseDistance arrays using the supplied lat/lon
+// creates new entry in the course and courseDistance arrays using the supplied lat/lon
 //
 void Navigator::addWaypoint(float lat, float lon) {
-  if(maxValidNavIdx < MAX_WAYPOINTS) {
-    maxValidNavIdx += 1;
-    waypoint[maxValidNavIdx].latitude = lat;
-    waypoint[maxValidNavIdx].longitude = lon;
-    if (maxValidNavIdx==0) { 
-      courseDistance[0].direction = USE_CURLOC;
-      courseDistance[0].magnitude = USE_CURLOC;
-    } else {
-      calcDistanceVector(&courseDistance[maxValidNavIdx],waypoint[maxValidNavIdx-1],waypoint[maxValidNavIdx]);
-    }
+  if(maxValidCourseIdx == INVALID_NAV) { 
+    maxValidCourseIdx = -1;
+    maxValidHoldIdx = -1;
+  }
+  
+  if(maxValidCourseIdx < MAX_WAYPOINTS) {
+    maxValidCourseIdx += 1;
+    course[maxValidCourseIdx].latitude = lat;
+    course[maxValidCourseIdx].longitude = lon;
   } else {
     errorData.navWaypointError = true;   
   }
+    Serial.print("MaxValidCourseIdx ");
+    Serial.println(maxValidCourseIdx,DEC);
+
 }
 
 
@@ -37,31 +42,47 @@ void Navigator::addWaypoint(float lat, float lon) {
 // checks that valid waypoints exist and prepares final course information
 //
 void Navigator::beginNavigation() {
-  if(maxValidNavIdx != INVALID_NAV_IDX) {  // add home waypoint, init curNavIdx=0
-    curNavIdx=0;
-    maxValidNavIdx+=1;
-    waypoint[maxValidNavIdx] = sensorData.curLocation;
-    calcDistanceVector(&courseDistance[maxValidNavIdx],waypoint[maxValidNavIdx-1],waypoint[maxValidNavIdx]);
+  if(maxValidCourseIdx != INVALID_NAV) {
+    calcHoldPattern(course[0]);
+//    calcCourseDistance();
+    curCourseIdx=1;
+    navData.navState = NAV_STATE_NAVIGATE;
   } else {  // STOP!!! No valid waypoints defined
-     Serial.println("No waypoints");
      
-     debugData.navErrors += 1;
+     errorData.navWaypointError = true;
      while(1) {
        delay(1000);
      }
   }
   
-  for(int i;i<=maxValidNavIdx;i++) {
+    Serial.print("MaxValidCourseIdx ");
+    Serial.println(maxValidCourseIdx,DEC);
+  
+  for(int i=0;i<=maxValidCourseIdx;i++) {
+    Serial.print("C ");
     Serial.print(i,DEC);
     Serial.print(" ");
-    Serial.print(waypoint[i].latitude,DEC);
-    Serial.print(" ");
-    Serial.print(waypoint[i].longitude,DEC);
+    Serial.print(course[i].latitude,DEC);
+    Serial.print("\t");
+    Serial.print(course[i].longitude,DEC);
     Serial.print(" ");
     Serial.print(courseDistance[i].magnitude,DEC);
     Serial.print(" ");
     Serial.print(courseDistance[i].direction,DEC);
-    Serial.println();
+    Serial.print("\n");
+  }
+  for(int i=0;i<HOLD_PATTERN_WAYPOINTS;i++) {
+    Serial.print("H ");
+    Serial.print(i,DEC);
+    Serial.print(" ");
+    Serial.print(hold[i].latitude,DEC);
+    Serial.print("\t");
+    Serial.print(hold[i].longitude,DEC);
+    Serial.print(" ");
+    Serial.print(holdDistance[i].magnitude,DEC);
+    Serial.print(" ");
+    Serial.print(holdDistance[i].direction,DEC);
+    Serial.print("\n");
   }
 }
 
@@ -72,14 +93,14 @@ void Navigator::beginNavigation() {
 void Navigator::update() {
   updateDistanceVectors();  // updates curDistance
   
-  while((curNavIdx != maxValidNavIdx) && advanceWaypoint()) {  // advance to the next waypoint if we've arrived at the current one
-      curNavIdx+=1;
+  while((curCourseIdx != maxValidCourseIdx) && advanceWaypoint()) {  // advance to the next waypoint if we've arrived at the current one
+      curCourseIdx+=1;
       updateDistanceVectors();  // updates curDistance for new waypoint
   }
   
   updateSpeedVectors();  // updates curAirSpeed, curGroundSpeed, curWindSpeed
-  
   calcPilotInputs();  // updates deltaAirSpeed, deltaAltitude, deltaBearing
+  updateState();  // naviagtion state machine
 }
 
 
@@ -87,7 +108,7 @@ void Navigator::update() {
 // updates curDistance
 //
 void Navigator::updateDistanceVectors() {
-  calcDistanceVector(&navData.curDistance,sensorData.curLocation,waypoint[curNavIdx]);
+  calcDistanceVector(&navData.curDistance,sensorData.curLocation,course[curCourseIdx]);
 }
 
 //
@@ -108,8 +129,8 @@ void Navigator::updateSpeedVectors() {
 //
 boolean Navigator::advanceWaypoint() {
   if(navData.curDistance.magnitude <= ARRIVED_THRESHOLD) {
-    if(curNavIdx < maxValidNavIdx) {
-      curNavIdx += 1;
+    if(curCourseIdx < maxValidCourseIdx) {
+      curCourseIdx += 1;
       return(true);
     }
   }
@@ -152,7 +173,71 @@ void Navigator::calcDistanceVector(Vector* v, Waypoint w1, Waypoint w2) {
   float gpsDistanceToDestination = sqrt(dLat*dLat + q*q*dLon*dLon) * 6371;
   v->magnitude = gpsDistanceToDestination;
 
+}
 
+
+//
+// navigation state machine
+//
+void Navigator::updateState() {
+  
+  switch(navData.navState) {
+    
+    // T: 0 P/Y/R: Centered
+    case NAV_STATE_START:
+      break;
+      
+    // T: nomAirSpeed, P: CLIMB_PITCH, Y: hold takeoff heading, R: N/A
+    case NAV_STATE_TAKEOFF:
+      break;
+      
+    // T: nomAirSpeed, P: CLIMB_PITCH, Y: upWind, R: N/A
+    case NAV_STATE_CLIMB:
+      break;
+      
+    // T: nomAirSpeed, P: cruiseAltitude, Y: deltaBearing, R: N/A
+    case NAV_STATE_NAVIGATE:
+      break;
+      
+    // T: max, P: RECOVER_PITCH, Y: upWind, R: N/A  
+    case NAV_STATE_RECOVER:
+      break;
+      
+    // T: 0, P: minAirSpeed, Y: upWind, R: N/A
+    case NAV_STATE_GLIDE:
+      break;
+      
+    // T: 0, P/Y/R: Centered  
+    case NAV_STATE_END:
+      break;
+      
+    // ?  
+    default:
+      break;
+  }  
+}
+
+
+//
+// creates the hold and holdDistance arrays
+//
+void Navigator::calcHoldPattern(Waypoint w) {
+  for(int i=0;i<HOLD_PATTERN_WAYPOINTS;i++) {
+    float calcAngle = 2 * 3.14159265358979323846 * i / HOLD_PATTERN_WAYPOINTS;
+    hold[i].latitude = w.latitude + HOLD_PATTERN_RADIUS * cos(calcAngle);
+    hold[i].longitude = w.longitude + HOLD_PATTERN_RADIUS * sin(calcAngle);
+  }
+  curHoldIdx = 0;
+}
+
+
+//
+// populates courseDistance vectors from course waypoints
+//
+void Navigator::calcCourseDistance() {  
+  for(int i=1;i <=maxValidCourseIdx; i++) {
+    calcDistanceVector(&courseDistance[i],course[i-1],course[i]);
+  }
 }
 
 
@@ -182,7 +267,6 @@ float Navigator::convDegreesToRadians(float degree) {
 // intermediate term for calcDistanceVector
 //
 float Navigator::calcDPhi(float lat1, float lat2) {
-  // ŒîœÜ = ln(tan(lat2/2+œÄ/4)/tan(lat1/2+œÄ/4)) 	[= the ‚Äòstretched‚Äô latitude difference]
   return(log(tan(lat2/2 + 0.78539816339744830962)/tan(lat1/2 + 0.78539816339744830962)));
 }
 
