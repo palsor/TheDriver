@@ -38,20 +38,27 @@
 #define NAV_STATE_GLIDE -2
 #define NAV_STATE_RECOVER -1
 #define NAV_STATE_START 0
+#define START_DURATION 3000 // ms
 #define NAV_STATE_TAKEOFF 1
-#define TAKEOFF_TIME 3000  // ms
+#define TAKEOFF_DURATION 5000  // ms
 #define NAV_STATE_CLIMB 2
 #define NAV_STATE_NAVIGATE 3
-#define INVALID_NAV -1000
+#define INVALID_NAV -1
 #define ARRIVED_THRESHOLD 0.0001
 
 // dynamics
+#define MIN_AIR_SPEED 0
+#define CRUISE_AIR_SPEED 0
 #define CLIMB_PITCH 15
 #define RECOVER_PITCH -15
 
 // mechanical controls
+#define PITCH_CENTER_ANGLE 90  // approximate steering on-center angle for servo
+#define PITCH_MECHANICAL_MAX 25  // mechanical limits of servo travel
 #define YAW_CENTER_ANGLE 90  // approximate steering on-center angle for servo
 #define YAW_MECHANICAL_MAX 25  // mechanical limits of servo travel
+#define ROLL_CENTER_ANGLE 90  // approximate steering on-center angle for servo
+#define ROLL_MECHANICAL_MAX 25  // mechanical limits of servo travel
 
 
 #endif

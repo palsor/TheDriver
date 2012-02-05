@@ -31,8 +31,8 @@ struct SensorData {
 };
 
 struct NavData {
-  int navState;  // current state of navigation state machine
-  int navPrevState;  // previous state of navigation state machine
+  int curNavState;  // current state of navigation state machine
+  int prevNavState;  // previous state of navigation state machine
   unsigned long lastStateTransitionTime;  // last navigator state transition time
   Vector curDistance;  // calculated distance/bearing to next waypoint
   Vector curGroundSpeed;  // created from gpsSpeed/gpsBearing
@@ -45,10 +45,10 @@ struct NavData {
 };
 
 struct PilotData {
-  float throttleValue;  // throttle value sent to controller
-  float pitchValue;  // pitch value sent to controller
-  float yawValue;  // yaw value sent to controller
-  float rollValue;  // roll value sent to controller
+  float throttleValue;  // throttle value sent to controller (0-99%)
+  float pitchValue;  // pitch value sent to controller (0-360 degrees)
+  float yawValue;  // yaw value sent to controller (0-360 degrees)
+  float rollValue;  // roll value sent to controller (0-360 degrees)
 };
 
 struct ErrorData {

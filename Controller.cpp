@@ -41,7 +41,7 @@ void Controller::update() {
 // applies throttleValue setting to throttle control hardware
 //
 void Controller::applyThrottleValue() {
-//  throttleServo.write(map(round(pilotData.throttleValue),0,99,0,359);
+//  throttleServo.write(map(pilotData.throttleValue,0,99,0,359));
 }
 
 
@@ -49,7 +49,7 @@ void Controller::applyThrottleValue() {
 // applies pitchValue setting to pitch control hardware
 //
 void Controller::applyPitchValue() {
-//  pitchServo.write(map(round(pilotData.pitchValue),0,99,0,359);
+//  pitchServo.write(pilotData.pitchValue);
 }
 
 
@@ -57,7 +57,7 @@ void Controller::applyPitchValue() {
 // applies yawValue setting to yaw control hardware
 //
 void Controller::applyYawValue() {
-  yawServo.write(map(round(pilotData.yawValue),0,99,0,359));
+  yawServo.write(pilotData.yawValue);
 }
 
 
@@ -65,5 +65,5 @@ void Controller::applyYawValue() {
 // applies rollValue setting to roll control hardware
 //
 void Controller::applyRollValue() {
-//  rollServo.write(map(round(pilotData.rollValue),0,99,0,359);
+//  rollServo.write(pilotData.rollValue);
 }
