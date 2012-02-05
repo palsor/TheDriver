@@ -32,7 +32,7 @@ void setup() {
   controller.init();
   pilot.init();
   navigator.init();
-//  sensors.init();
+  sensors.init();
   comms.init();
 Serial.begin(SERIAL_RATE);
 
