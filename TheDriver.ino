@@ -53,7 +53,7 @@ navigator.addWaypoint(30.362757,-97.90962);  // brt sky
 } 
 
 void loop() {
-  sensors.update(); // read from the sensors
+//  sensors.update(); // read from the sensors
   navigator.update(); // update navigation calculations
   pilot.update();  // update plane controls based on desired navigation
   controller.update(); // send new signals to servos and motor

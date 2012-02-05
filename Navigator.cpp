@@ -8,11 +8,16 @@ Navigator::Navigator() {
 // initializes navigation indexes to known invalid states
 //
 void Navigator::init() {
+  navSelect = true;  // nav to course
   curCourseIdx = INVALID_NAV;
   maxValidCourseIdx = INVALID_NAV;
   curHoldIdx = INVALID_NAV;
   maxValidHoldIdx = INVALID_NAV;
-  navData.navState = NAV_STATE_START;
+  navData.curNavState = NAV_STATE_END;
+  navData.prevNavState = NAV_STATE_END;
+  navData.lastStateTransitionTime = millis();
+  minAirSpeed = MIN_AIR_SPEED;
+  cruiseAirSpeed = CRUISE_AIR_SPEED;
 }
 
 
@@ -20,11 +25,6 @@ void Navigator::init() {
 // creates new entry in the course and courseDistance arrays using the supplied lat/lon
 //
 void Navigator::addWaypoint(float lat, float lon) {
-  if(maxValidCourseIdx == INVALID_NAV) { 
-    maxValidCourseIdx = -1;
-    maxValidHoldIdx = -1;
-  }
-  
   if(maxValidCourseIdx < MAX_WAYPOINTS) {
     maxValidCourseIdx += 1;
     course[maxValidCourseIdx].latitude = lat;
@@ -32,9 +32,8 @@ void Navigator::addWaypoint(float lat, float lon) {
   } else {
     errorData.navWaypointError = true;   
   }
-    Serial.print("MaxValidCourseIdx ");
-    Serial.println(maxValidCourseIdx,DEC);
-
+Serial.print("MaxValidCourseIdx ");  // remove
+Serial.println(maxValidCourseIdx,DEC);  // remove
 }
 
 
@@ -43,18 +42,15 @@ void Navigator::addWaypoint(float lat, float lon) {
 //
 void Navigator::beginNavigation() {
   if(maxValidCourseIdx != INVALID_NAV) {
-    calcHoldPattern(course[0]);
-//    calcCourseDistance();
-    curCourseIdx=1;
-    navData.navState = NAV_STATE_NAVIGATE;
-  } else {  // STOP!!! No valid waypoints defined
-     
-     errorData.navWaypointError = true;
-     while(1) {
-       delay(1000);
-     }
+    calcHoldPattern(sensorData.curLocation);
+    curCourseIdx = 0;
+    curHoldIdx = 0;
+    transitionState(NAV_STATE_START);
+  } else {  // no valid waypoints added to course
+    transitionState(NAV_STATE_END);
   }
   
+    // remove
     Serial.print("MaxValidCourseIdx ");
     Serial.println(maxValidCourseIdx,DEC);
   
@@ -71,7 +67,7 @@ void Navigator::beginNavigation() {
     Serial.print(courseDistance[i].direction,DEC);
     Serial.print("\n");
   }
-  for(int i=0;i<HOLD_PATTERN_WAYPOINTS;i++) {
+  for(int i=0;i<=maxValidHoldIdx;i++) {
     Serial.print("H ");
     Serial.print(i,DEC);
     Serial.print(" ");
@@ -88,31 +84,83 @@ void Navigator::beginNavigation() {
 
 
 //
+// creates the hold and holdDistance arrays
+//
+void Navigator::calcHoldPattern(Waypoint w) {
+  for(int i=0;i<HOLD_PATTERN_WAYPOINTS;i++) {
+    maxValidHoldIdx = i;
+    float calcAngle = 2 * 3.14159265358979323846 * i / HOLD_PATTERN_WAYPOINTS;
+    hold[maxValidHoldIdx].latitude = w.latitude + HOLD_PATTERN_RADIUS * cos(calcAngle);
+    hold[maxValidHoldIdx].longitude = w.longitude + HOLD_PATTERN_RADIUS * sin(calcAngle);
+  }
+}
+
+
+//
+// populates courseDistance vectors from course waypoints
+//
+void Navigator::calcCourseDistance() {  
+  for(int i=1;i <=maxValidCourseIdx; i++) {
+    calcDistanceVector(&courseDistance[i],course[i-1],course[i]);
+  }
+}
+
+
+//
 // update navigation calculations
 //
 void Navigator::update() {
-  updateDistanceVectors();  // updates curDistance
-  
-  while((curCourseIdx != maxValidCourseIdx) && advanceWaypoint()) {  // advance to the next waypoint if we've arrived at the current one
-      curCourseIdx+=1;
-      updateDistanceVectors();  // updates curDistance for new waypoint
-  }
-  
-  updateSpeedVectors();  // updates curAirSpeed, curGroundSpeed, curWindSpeed
-  calcPilotInputs();  // updates deltaAirSpeed, deltaAltitude, deltaBearing
+  manageCourse();  // manages distances/waypoints
+  updateSpeedVectors();  // updates curAirSpeed, curGroundSpeed, curWindSpeed, targAirSpeed
   updateState();  // naviagtion state machine
+  calcPilotInputs();  // updates deltaAirSpeed, deltaAltitude, deltaBearing
 }
 
+
+//
+// updates distance and manges next waypoint
+//
+void Navigator::manageCourse() {
+  updateDistanceVectors();  // updates curDistance
+  
+  while(advanceWaypoint()) {  // advance to the next waypoint if we've arrived at the current one
+      if(navSelect) {
+        if(curCourseIdx==maxValidCourseIdx) {  // last course waypoint reached; switch to hold pattern
+          navSelect = false;
+        } else {
+          curCourseIdx+=1;
+        }
+      } else {
+        curHoldIdx+=1;
+        curHoldIdx%=maxValidHoldIdx;  // loop through hold pattern waypoints indefinitely
+      }
+      updateDistanceVectors();  // updates curDistance for navSelect ? course waypoint : hold waypoint
+  }
+}
 
 //
 // updates curDistance
 //
 void Navigator::updateDistanceVectors() {
-  calcDistanceVector(&navData.curDistance,sensorData.curLocation,course[curCourseIdx]);
+  if(navSelect) {  // use course waypoints
+    calcDistanceVector(&navData.curDistance,sensorData.curLocation,course[curCourseIdx]);
+  } else {  // use hold pattern waypoints
+    calcDistanceVector(&navData.curDistance,sensorData.curLocation,hold[curHoldIdx]);
+  }
 }
 
+
 //
-// updates ground/air/windSpeed
+// checks if navigation should advance to the next waypoint (true=arrived/advance false=continue navigation)
+//
+boolean Navigator::advanceWaypoint() {
+  if(navData.curDistance.magnitude <= ARRIVED_THRESHOLD) { return(true); };
+  return(false);
+}
+
+
+//
+// updates current ground/air/wind speeds & calculates targetAirSpeed
 //
 void Navigator::updateSpeedVectors() {
   navData.curAirSpeed.direction = sensorData.magBearing;
@@ -124,27 +172,150 @@ void Navigator::updateSpeedVectors() {
   subv(&navData.curWindSpeed,navData.curGroundSpeed,navData.curAirSpeed);
 }
 
+
 //
-// checks if navigation should advance to the next waypoint (true=arrived/advance false=continue navigation)
+// navigation state machine
 //
-boolean Navigator::advanceWaypoint() {
-  if(navData.curDistance.magnitude <= ARRIVED_THRESHOLD) {
-    if(curCourseIdx < maxValidCourseIdx) {
-      curCourseIdx += 1;
-      return(true);
-    }
-  }
+void Navigator::updateState() {
+  unsigned long curTime = millis();
+  if(priorityStateChecks()) { return; };  // checks for error conditions to make priority state transitions independent of current state  
+  
+  switch(navData.curNavState) {
+    
+    // T: 0 P/Y/R: Centered
+    case NAV_STATE_START:
+      if(curTime-navData.lastStateTransitionTime >= START_DURATION) { transitionState(NAV_STATE_TAKEOFF); };
+      break;
+      
+    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: hold takeoff heading, R: N/A
+    case NAV_STATE_TAKEOFF:
+      if(curTime-navData.lastStateTransitionTime >= TAKEOFF_DURATION) { transitionState(NAV_STATE_CLIMB); };
+      break;
+      
+    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: upWind, R: N/A
+    case NAV_STATE_CLIMB:
+      // if(cruiseAltitude >= sensorData.pressAltitude) { transitionState(NAV_STATE_NAVIGATE); };
+      transitionState(NAV_STATE_NAVIGATE);
+      break;
+      
+    // T: cruiseAirSpeed, P: cruiseAltitude, Y: deltaBearing, R: N/A
+    case NAV_STATE_NAVIGATE:
+      // only priorityStateChecks transition state out of NAV_STATE_NAVIGATE
+      break;
+      
+    // T: max, P: RECOVER_PITCH, Y: upWind, R: N/A  
+    case NAV_STATE_RECOVER:
+      // if(sensorData.airSpeed >= cruiseAirSpeed) { transitionState(NAV_STATE_CLIMB); };
+      transitionState(NAV_STATE_CLIMB);
+      break;
+      
+    // T: 0, P: minAirSpeed, Y: upWind, R: N/A
+    case NAV_STATE_GLIDE:
+      // put in a time check to transition to NAV_STATE_END if no groundSpeed movement for a specified duration
+      break;
+      
+    // T: 0, P/Y/R: Centered  
+    case NAV_STATE_END:
+      break;
+      
+    // ?  
+    default:
+      break;
+  }  
+}
+
+
+//
+// checks for error conditions to make priority state transitions independent of current state
+//
+boolean Navigator::priorityStateChecks() {
+  // if batt check cutoff -> NAV_STATE_GLIDE
+  // if batt check distance -> navSelect=false (next loop iteration switches to hold waypoints)
+//  if(sensorData.airSpeed <= minAirSpeed) {
+//    if(navData.curNavState != NAV_STATE_RECOVER) { transitionState(NAV_STATE_RECOVER); };
+//    return(true);
+//  }
   return(false);
 }
+
+
+//
+// transitions state and associated variables
+//
+void Navigator::transitionState(int newState) {
+Serial.print("State ");
+Serial.print(navData.curNavState,DEC);
+Serial.print("->");
+Serial.println(newState,DEC);
+  navData.prevNavState = navData.curNavState;
+  navData.curNavState = newState;
+  navData.lastStateTransitionTime = millis();
+}
+
 
 //
 // calculates deltas between current and desired airSpeed altitude and bearing
 //
 void Navigator::calcPilotInputs() {
-  navData.deltaAirSpeed = 0;
-  navData.deltaAltitude = 0;  
-  navData.deltaBearing = calcMinimumAngle(navData.curAirSpeed.direction,navData.curDistance.direction);
+
+  switch(navData.curNavState) {
+    
+    // T: 0 P/Y/R: Centered
+    case NAV_STATE_START:
+      navData.deltaAirSpeed = 0;
+      navData.deltaAltitude = 0;
+      navData.deltaBearing = 0;
+      break;
+      
+    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: hold takeoff heading, R: N/A
+    case NAV_STATE_TAKEOFF:
+      navData.deltaAirSpeed = 0;
+      navData.deltaAltitude = 0;
+      navData.deltaBearing = 0;
+      break;
+      
+    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: upWind, R: N/A
+    case NAV_STATE_CLIMB:
+      navData.deltaAirSpeed = 0;
+      navData.deltaAltitude = 0;
+      navData.deltaBearing = 0;
+      break;
+      
+    // T: cruiseAirSpeed, P: cruiseAltitude, Y: deltaBearing, R: N/A
+    case NAV_STATE_NAVIGATE:
+      navData.deltaAirSpeed = 0;  // cruiseAirSpeed - sensorData.airSpeed
+      navData.deltaAltitude = 0;  // cruiseAltitude - sensorData.pressAltitude
+      navData.deltaBearing = calcMinimumAngle(navData.curAirSpeed.direction,navData.curDistance.direction);
+      break;
+      
+    // T: max, P: RECOVER_PITCH, Y: upWind, R: N/A  
+    case NAV_STATE_RECOVER:
+      navData.deltaAirSpeed = 0;
+      navData.deltaAltitude = 0;
+      navData.deltaBearing = 0;
+      break;
+      
+    // T: 0, P: minAirSpeed, Y: upWind, R: N/A
+    case NAV_STATE_GLIDE:
+      navData.deltaAirSpeed = 0;
+      navData.deltaAltitude = 0;
+      navData.deltaBearing = 0;
+      break;
+      
+    // T: 0, P/Y/R: Centered  
+    case NAV_STATE_END:
+      navData.deltaAirSpeed = 0;
+      navData.deltaAltitude = 0;
+      navData.deltaBearing = 0;
+      break;
+      
+    // ?  
+    default:
+      break;
+  }  
+
 }
+
 
 //
 // returns a vector calculated from from waypoint 1 to waypoint 2 in *v
@@ -173,71 +344,6 @@ void Navigator::calcDistanceVector(Vector* v, Waypoint w1, Waypoint w2) {
   float gpsDistanceToDestination = sqrt(dLat*dLat + q*q*dLon*dLon) * 6371;
   v->magnitude = gpsDistanceToDestination;
 
-}
-
-
-//
-// navigation state machine
-//
-void Navigator::updateState() {
-  
-  switch(navData.navState) {
-    
-    // T: 0 P/Y/R: Centered
-    case NAV_STATE_START:
-      break;
-      
-    // T: nomAirSpeed, P: CLIMB_PITCH, Y: hold takeoff heading, R: N/A
-    case NAV_STATE_TAKEOFF:
-      break;
-      
-    // T: nomAirSpeed, P: CLIMB_PITCH, Y: upWind, R: N/A
-    case NAV_STATE_CLIMB:
-      break;
-      
-    // T: nomAirSpeed, P: cruiseAltitude, Y: deltaBearing, R: N/A
-    case NAV_STATE_NAVIGATE:
-      break;
-      
-    // T: max, P: RECOVER_PITCH, Y: upWind, R: N/A  
-    case NAV_STATE_RECOVER:
-      break;
-      
-    // T: 0, P: minAirSpeed, Y: upWind, R: N/A
-    case NAV_STATE_GLIDE:
-      break;
-      
-    // T: 0, P/Y/R: Centered  
-    case NAV_STATE_END:
-      break;
-      
-    // ?  
-    default:
-      break;
-  }  
-}
-
-
-//
-// creates the hold and holdDistance arrays
-//
-void Navigator::calcHoldPattern(Waypoint w) {
-  for(int i=0;i<HOLD_PATTERN_WAYPOINTS;i++) {
-    float calcAngle = 2 * 3.14159265358979323846 * i / HOLD_PATTERN_WAYPOINTS;
-    hold[i].latitude = w.latitude + HOLD_PATTERN_RADIUS * cos(calcAngle);
-    hold[i].longitude = w.longitude + HOLD_PATTERN_RADIUS * sin(calcAngle);
-  }
-  curHoldIdx = 0;
-}
-
-
-//
-// populates courseDistance vectors from course waypoints
-//
-void Navigator::calcCourseDistance() {  
-  for(int i=1;i <=maxValidCourseIdx; i++) {
-    calcDistanceVector(&courseDistance[i],course[i-1],course[i]);
-  }
 }
 
 

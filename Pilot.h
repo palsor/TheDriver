@@ -14,6 +14,7 @@ class Pilot {
   private:
     void updateSpeedControl();
     void updateHeadingControl();
+    float clipMechanicalAngle(float angle, int mechMax, int centerAngle);
 };
 
 #endif
