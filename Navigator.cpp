@@ -8,6 +8,12 @@ Navigator::Navigator() {
 // initializes navigation indexes to known invalid states
 //
 void Navigator::init() {
+  course = (Waypoint*)malloc(sizeof(Waypoint) * (MAX_WAYPOINTS - 1)); // Array of waypoints that form the course
+  courseDistance = (Vector*)malloc(sizeof(Vector) * (MAX_WAYPOINTS-1));  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
+
+  hold = (Waypoint*)malloc(sizeof(Waypoint) * (HOLD_PATTERN_WAYPOINTS-1));  // Array of waypoints that create a holding pattern course around the course origin
+  holdDistance = (Vector*)malloc(sizeof(Vector) * (HOLD_PATTERN_WAYPOINTS-1));  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
+
   navSelect = true;  // nav to course
   curCourseIdx = INVALID_NAV;
   maxValidCourseIdx = INVALID_NAV;
@@ -43,6 +49,7 @@ Serial.println(maxValidCourseIdx,DEC);  // remove
 void Navigator::beginNavigation() {
   if(maxValidCourseIdx != INVALID_NAV) {
     calcHoldPattern(sensorData.curLocation);
+    calcCourseDistance();
     curCourseIdx = 0;
     curHoldIdx = 0;
     transitionState(NAV_STATE_START);
@@ -67,6 +74,15 @@ void Navigator::beginNavigation() {
     Serial.print(courseDistance[i].direction,DEC);
     Serial.print("\n");
   }
+  
+//    holdDistance[0].magnitude = 8888;
+//  holdDistance[1].magnitude = 7777;
+//  holdDistance[2].magnitude = 6666;
+//  holdDistance[3].magnitude = 5555;
+//  
+    Serial.print("H Max Idx ");
+    Serial.println(maxValidHoldIdx);
+  
   for(int i=0;i<=maxValidHoldIdx;i++) {
     Serial.print("H ");
     Serial.print(i,DEC);
@@ -102,6 +118,11 @@ void Navigator::calcHoldPattern(Waypoint w) {
 void Navigator::calcCourseDistance() {  
   for(int i=1;i <=maxValidCourseIdx; i++) {
     calcDistanceVector(&courseDistance[i],course[i-1],course[i]);
+  }
+  
+  calcDistanceVector(&holdDistance[0],hold[maxValidHoldIdx],hold[0]);
+  for(int i=1;i <=maxValidHoldIdx; i++) {
+    calcDistanceVector(&holdDistance[i],hold[i-1],hold[i]);
   }
 }
 

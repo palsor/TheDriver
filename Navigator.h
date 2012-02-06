@@ -14,12 +14,14 @@ class Navigator {
     void update();   // update navigation calculations
     
   private:
+  
+  Waypoint* course; // Array of waypoints that form the course
+Vector* courseDistance;  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
+Waypoint* hold;  // Array of waypoints that create a holding pattern course around the course origin
+Vector* holdDistance;  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
+  
     // waypoint and navigation vars
     boolean navSelect;  // true=navigate to course waypoints; false=navigate to hold waypoints
-    Waypoint course[MAX_WAYPOINTS-1]; // Array of waypoints that form the course
-    Vector courseDistance[MAX_WAYPOINTS-1];  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
-    Waypoint hold[HOLD_PATTERN_WAYPOINTS-1];  // Array of waypoints that create a holding pattern course around the course origin
-    Vector holdDistance[HOLD_PATTERN_WAYPOINTS-1];  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
     int maxValidCourseIdx;  // max valid index of waypoints & courseDistances
     int curCourseIdx;  // current index (next destination waypoint and current courseDistance)   
     int maxValidHoldIdx;  // max valid index of waypoints & courseDistances

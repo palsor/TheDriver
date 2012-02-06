@@ -32,17 +32,16 @@ void setup() {
   controller.init();
   pilot.init();
   navigator.init();
-  sensors.init();
+//  sensors.init();
   comms.init();
 Serial.begin(SERIAL_RATE);
-
   
   //required initialization of course[0] to home location
 //  sensors.update();
-//  navigator.addWaypoint(sensorData.curLocation.latitude,sensorData.curLocation.longitude);
-navigator.addWaypoint(30.362757,-97.90962);  // brt sky  
+
 
   // setup course waypoints
+  navigator.addWaypoint(30.362757,-97.90962);  // brt sky  
   navigator.addWaypoint(30.1804008483,-97.8398818969);  // lk travis
   navigator.addWaypoint(30.4038,-97.853969);  // 4 pts
   navigator.addWaypoint(30.429947,-97.921314);  // c&c

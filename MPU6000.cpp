@@ -24,26 +24,26 @@ void MPU6000::update() {
 //
 byte MPU6000::spiRead(byte reg)
 {
-  byte dump;
-  byte return_value;
-  byte addr = reg | 0x80; // Set most significant bit
-  digitalWrite(MPU6000_CHIP_SELECT_PIN, LOW);
-  dump = SPI.transfer(addr);
-  return_value = SPI.transfer(0);
-  digitalWrite(MPU6000_CHIP_SELECT_PIN, HIGH);
-  return(return_value);
+//  byte dump;
+//  byte return_value;
+//  byte addr = reg | 0x80; // Set most significant bit
+//  digitalWrite(MPU6000_CHIP_SELECT_PIN, LOW);
+//  dump = SPI.transfer(addr);
+//  return_value = SPI.transfer(0);
+//  digitalWrite(MPU6000_CHIP_SELECT_PIN, HIGH);
+//  return(return_value);
 }
 
 void MPU6000::spiWrite(byte reg, byte data)
 {
-  byte dump;
-  digitalWrite(MPU6000_CHIP_SELECT_PIN, LOW);
-  dump = SPI.transfer(reg);
-  dump = SPI.transfer(data);
-  digitalWrite(MPU6000_CHIP_SELECT_PIN, HIGH);
+//  byte dump;
+//  digitalWrite(MPU6000_CHIP_SELECT_PIN, LOW);
+//  dump = SPI.transfer(reg);
+//  dump = SPI.transfer(data);
+//  digitalWrite(MPU6000_CHIP_SELECT_PIN, HIGH);
 }
 
 void MPU6000::dataInt()
 {
-  newdata++;
+//  newdata++;
 }
