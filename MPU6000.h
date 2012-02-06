@@ -67,6 +67,10 @@ class MPU6000 {
     void update();
     
   private:
+    byte spiRead(byte reg);
+    void spiWrite(byte reg, byte data);
+    void dataInt();
+    int newData;
 };
 
 #endif
