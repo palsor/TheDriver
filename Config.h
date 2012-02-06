@@ -40,7 +40,7 @@
 #define NAV_STATE_START 0
 #define START_DURATION 3000 // ms
 #define NAV_STATE_TAKEOFF 1
-#define TAKEOFF_DURATION 5000  // ms
+#define TAKEOFF_DURATION 3000  // ms
 #define NAV_STATE_CLIMB 2
 #define NAV_STATE_NAVIGATE 3
 #define INVALID_NAV -1

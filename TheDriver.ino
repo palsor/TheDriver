@@ -24,11 +24,6 @@ Navigator navigator;
 Pilot pilot;
 Communication comms;
 
-Waypoint course[MAX_WAYPOINTS-1]; // Array of waypoints that form the course
-Vector courseDistance[MAX_WAYPOINTS-1];  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
-Waypoint hold[HOLD_PATTERN_WAYPOINTS-1];  // Array of waypoints that create a holding pattern course around the course origin
-Vector holdDistance[HOLD_PATTERN_WAYPOINTS-1];  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
-
 unsigned long nextCommTime = 0;
 
 void setup() {
@@ -37,10 +32,11 @@ void setup() {
   controller.init();
   pilot.init();
   navigator.init();
-  sensors.init();
+//  sensors.init();
   comms.init();
 Serial.begin(SERIAL_RATE);
 
+ 
   
   //required initialization of course[0] to home location
 //  sensors.update();
