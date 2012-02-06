@@ -8,6 +8,12 @@ Navigator::Navigator() {
 // initializes navigation indexes to known invalid states
 //
 void Navigator::init() {
+  course = (Waypoint*)malloc(sizeof(Waypoint) * (MAX_WAYPOINTS - 1)); // Array of waypoints that form the course
+  courseDistance = (Vector*)malloc(sizeof(Vector) * (MAX_WAYPOINTS-1));  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
+
+  hold = (Waypoint*)malloc(sizeof(Waypoint) * (HOLD_PATTERN_WAYPOINTS-1));  // Array of waypoints that create a holding pattern course around the course origin
+  holdDistance = (Vector*)malloc(sizeof(Vector) * (HOLD_PATTERN_WAYPOINTS-1));  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
+
   navSelect = true;  // nav to course
   curCourseIdx = INVALID_NAV;
   maxValidCourseIdx = INVALID_NAV;
@@ -18,12 +24,6 @@ void Navigator::init() {
   navData.lastStateTransitionTime = millis();
   minAirSpeed = MIN_AIR_SPEED;
   cruiseAirSpeed = CRUISE_AIR_SPEED;
-  
-  course = (Waypoint*)malloc(sizeof(Waypoint) * (MAX_WAYPOINTS - 1)); // Array of waypoints that form the course
-  courseDistance = (Vector*)malloc(sizeof(Vector) * (MAX_WAYPOINTS-1));  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
-
-  hold = (Waypoint*)malloc(sizeof(Waypoint) * (HOLD_PATTERN_WAYPOINTS-1));  // Array of waypoints that create a holding pattern course around the course origin
-  holdDistance = (Vector*)malloc(sizeof(Vector) * (HOLD_PATTERN_WAYPOINTS-1));  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
 }
 
 
