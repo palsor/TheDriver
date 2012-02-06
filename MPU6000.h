@@ -70,7 +70,7 @@ class MPU6000 {
     byte spiRead(byte reg);
     void spiWrite(byte reg, byte data);
     void dataInt();
-    int newData;
+    int newdata;
 };
 
 #endif

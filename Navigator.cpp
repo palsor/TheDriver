@@ -25,7 +25,7 @@ void Navigator::init() {
 // creates new entry in the course and courseDistance arrays using the supplied lat/lon
 //
 void Navigator::addWaypoint(float lat, float lon) {
-  if(maxValidCourseIdx < MAX_WAYPOINTS) {
+  if(maxValidCourseIdx < MAX_WAYPOINTS - 1) {
     maxValidCourseIdx += 1;
     course[maxValidCourseIdx].latitude = lat;
     course[maxValidCourseIdx].longitude = lon;
