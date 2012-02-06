@@ -43,6 +43,7 @@ Serial.println(maxValidCourseIdx,DEC);  // remove
 void Navigator::beginNavigation() {
   if(maxValidCourseIdx != INVALID_NAV) {
     calcHoldPattern(sensorData.curLocation);
+//    calcCourseDistance();
     curCourseIdx = 0;
     curHoldIdx = 0;
     transitionState(NAV_STATE_START);
@@ -67,6 +68,14 @@ void Navigator::beginNavigation() {
     Serial.print(courseDistance[i].direction,DEC);
     Serial.print("\n");
   }
+  
+  holdDistance[0].magnitude = 8888;
+  holdDistance[1].magnitude = 7777;
+  holdDistance[2].magnitude = 6666;
+  holdDistance[3].magnitude = 5555;
+  
+  Serial.println(maxValidHoldIdx);
+  
   for(int i=0;i<=maxValidHoldIdx;i++) {
     Serial.print("H ");
     Serial.print(i,DEC);
@@ -102,6 +111,11 @@ void Navigator::calcHoldPattern(Waypoint w) {
 void Navigator::calcCourseDistance() {  
   for(int i=1;i <=maxValidCourseIdx; i++) {
     calcDistanceVector(&courseDistance[i],course[i-1],course[i]);
+  }
+  
+  calcDistanceVector(&holdDistance[0],hold[maxValidHoldIdx],hold[0]);
+  for(int i=1;i <=maxValidHoldIdx; i++) {
+    calcDistanceVector(&holdDistance[i],hold[i-1],hold[i]);
   }
 }
 
