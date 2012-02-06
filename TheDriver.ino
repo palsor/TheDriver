@@ -32,14 +32,9 @@ void setup() {
   controller.init();
   pilot.init();
   navigator.init();
-//  sensors.init();
+  sensors.init();
   comms.init();
-Serial.begin(SERIAL_RATE);
   
-  //required initialization of course[0] to home location
-//  sensors.update();
-
-
   // setup course waypoints
   navigator.addWaypoint(30.362757,-97.90962);  // brt sky  
   navigator.addWaypoint(30.1804008483,-97.8398818969);  // lk travis
@@ -52,7 +47,7 @@ Serial.begin(SERIAL_RATE);
 } 
 
 void loop() {
-//  sensors.update(); // read from the sensors
+  sensors.update(); // read from the sensors
   navigator.update(); // update navigation calculations
   pilot.update();  // update plane controls based on desired navigation
   controller.update(); // send new signals to servos and motor
