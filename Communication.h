@@ -1,7 +1,8 @@
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
-#include <SoftwareSerial.h>
+#include <SPI.h>
+
 #include "Config.h"
 #include "Externs.h"
 
@@ -9,10 +10,11 @@ class Communication {
   public:
     Communication();
     void init();
-    void print();
+    void sendData();
     
   private:
-    SoftwareSerial port;
+    byte spiRead(byte reg);
+    void spiWrite(byte reg, byte data);
 };
 
 #endif

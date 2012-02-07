@@ -7,8 +7,6 @@
 #include "Config.h"
 #include "Externs.h"
 
-#define MPU6000_CHIP_SELECT_PIN 4  // MPU6000 CHIP SELECT
-
 // MPU 6000 registers
 #define MPUREG_WHOAMI 0x75 //
 #define	MPUREG_SMPLRT_DIV 0x19 //
@@ -64,12 +62,12 @@ class MPU6000 {
   public:
     MPU6000();
     void init();
-    void update();
+    void update();    
+    void dataInt();
     
   private:
     byte spiRead(byte reg);
     void spiWrite(byte reg, byte data);
-    void dataInt();
     int newdata;
 };
 

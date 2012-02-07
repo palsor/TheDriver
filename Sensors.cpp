@@ -16,3 +16,7 @@ void Sensors::update() {
     gps.update();
     mpu.update();
 }
+
+void Sensors::mpuDataInt() {
+  mpu.dataInt();  
+}

@@ -10,16 +10,12 @@
 #define YAW_SERVO_PIN 9
 //#define ROLL_SERVO_PIN
 
+#define MPU_SS_PIN 4
 #define GPS_MUX_PIN 7
-#define SOFT_SERIAL_RX 11
-#define SOFT_SERIAL_TX 12
+#define MINI_SS_PIN 8
 
 // output config
 #define SERIAL_RATE 38400 // baud
-#define SOFT_SERIAL_RATE 9600 // baud
-
-// real time config (millis)
-#define COMM_OUTPUT_RATE 1000
 
 // debug config
 #define NAV_DEBUG 0

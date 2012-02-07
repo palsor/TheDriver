@@ -15,6 +15,7 @@ class Sensors {
     Sensors();
     void init();
     void update();
+    void mpuDataInt();
     
    private:
      Compass compass;

@@ -28,12 +28,24 @@ unsigned long nextCommTime = 0;
 
 void setup() {
   
+  // init SPI bus - must come before sensor and comms init
+  pinMode(MPU_SS_PIN, OUTPUT);
+  digitalWrite(MPU_SS_PIN, HIGH);
+  pinMode(MINI_SS_PIN, OUTPUT);
+  digitalWrite(MINI_SS_PIN, HIGH);
+  SPI.begin();
+  SPI.setClockDivider(SPI_CLOCK_DIV16);      // SPI at 1Mhz (on 16Mhz clock)
+  delay(10);
+  
   // init our objects
   controller.init();
   pilot.init();
   navigator.init();
   sensors.init();
   comms.init();
+  
+  // setup interrupts - must occur after sensor init
+  attachInterrupt(0, mpuDataInt, RISING);
   
   // setup course waypoints
   navigator.addWaypoint(30.362757,-97.90962);  // brt sky  
@@ -47,14 +59,14 @@ void setup() {
 } 
 
 void loop() {
-  sensors.update(); // read from the sensors
-  navigator.update(); // update navigation calculations
-  pilot.update();  // update plane controls based on desired navigation
+  sensors.update();    // read from the sensors
+  navigator.update();  // update navigation calculations
+  pilot.update();      // update plane controls based on desired navigation
   controller.update(); // send new signals to servos and motor
   
-  unsigned long curTime = millis();  
-  if (curTime > nextCommTime) {
-    comms.print();
-    nextCommTime = curTime + COMM_OUTPUT_RATE;
-  }
+  comms.sendData();    // send data to arduino mini
+}
+
+void mpuDataInt() {
+  sensors.mpuDataInt();  
 }
