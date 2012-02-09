@@ -40,10 +40,11 @@ class Navigator {
     
     // update
     void manageCourse();  // manages distances and next waypoint
+      void updateSpeedVectors();  // updates ground/air peed
       void updateEstLocation();  // updates navData.estLocation
       void updateDistanceVectors();  // updates curDistance
       boolean advanceWaypoint();  // checks if navigation should advance to the next waypoint (true=arrived/advance false=continue navigation)
-    void updateSpeedVectors();  // updates ground/air/windSpeed
+    void calcCurWindSpeed();  // updates curWindSpeed
     void updateState();  // navigation state machine
       boolean priorityStateChecks();  // checks for error conditions to make priority state transitions independent of current state
       void transitionState(int newState);  // transitions state and assocaited variables

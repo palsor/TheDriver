@@ -129,7 +129,6 @@ void Navigator::calcCourseDistance() {
 void Navigator::update() {
   curUpdateTime = millis();  // sets timestamp for this run
   manageCourse();  // manages distances/waypoints
-  updateSpeedVectors();  // updates curAirSpeed, curGroundSpeed, curWindSpeed, targAirSpeed
   updateState();  // naviagtion state machine
   calcPilotInputs();  // updates deltaAirSpeed, deltaAltitude, deltaBearing
   navData.lastUpdateTime = curUpdateTime; // saves timestamp for last run
@@ -140,7 +139,15 @@ void Navigator::update() {
 // updates distance to destination and manges next waypoint
 //
 void Navigator::manageCourse() {
-  updateEstLocation();  // updates navData.estLocation
+  updateSpeedVectors();  // updates cur air/ground speed with sensor data
+
+  if(sensorData.gpsUpdated) {  // if gps updated this iteration
+    navData.estLocation = sensorData.curLocation;  // update estimated location with actual gps fix location
+    calcCurWindSpeed();  // re-calculate curWindSpeed
+  } else {  // gps not updated this iteration
+    updateEstLocation();  // updates navData.estLocation with curAirSpeed, windSpeed, and last location
+  }
+
   updateDistanceVectors();  // updates curDistance
   
   while(advanceWaypoint()) {  // advance to the next waypoint if we've arrived at the current one
@@ -160,45 +167,55 @@ void Navigator::manageCourse() {
 
 
 //
+// updates current ground/air speeds
+//
+void Navigator::updateSpeedVectors() {
+  navData.curAirSpeed.direction = sensorData.magBearing;
+  navData.curAirSpeed.magnitude = sensorData.airSpeed;
+  
+  navData.curDistance.direction = sensorData.gpsBearing;
+  navData.curDistance.magnitude = sensorData.gpsSpeed;
+}
+
+
+//
 // updates navData.estLocation
 //
 void Navigator::updateEstLocation() {
-  if(0) {  // gps curLocation updated this loop iteration
-    navData.estLocation = sensorData.curLocation;
-  } else {  // gps curLocation NOT updated this loop iteration
-    Waypoint w;
-    Vector estDist = calcDistanceVecFromSpeedVecs();
-    
-    // lat1 = navData.estLocation.latitude
-    // lon1 = navData.estLocation.longitude
-    // lat2 = w.latitude
-    // lon2 = w.longitude
-    
+  Waypoint w;  // new estimated location waypoint
+  Vector estDist = calcDistanceVecFromSpeedVecs();  // translates speed & time into distance
+  
+  // d = estDist.magnitude
+  // brng = estDist.direction
+  // lat1 = navData.estLocation.latitude
+  // lon1 = navData.estLocation.longitude
+  // lat2 = w.latitude
+  // lon2 = w.longitude
+  
 //    var dLat = d*Math.cos(brng);
-    float dLat = estDist.magnitude * cos(estDist.direction);
+  float dLat = estDist.magnitude * cos(estDist.direction);
 //    var lat2 = lat1 + dLat;
-    w.latitude = navData.estLocation.latitude + dLat;
+  w.latitude = navData.estLocation.latitude + dLat;
 //    var dPhi = Math.log(Math.tan(lat2/2+Math.PI/4)/Math.tan(lat1/2+Math.PI/4));
-    float dPhi = calcDPhi(navData.estLocation.latitude, w.latitude);
+  float dPhi = calcDPhi(navData.estLocation.latitude, w.latitude);
 //    var q = (!isNaN(dLat/dPhi)) ? dLat/dPhi : Math.cos(lat1);  // E-W line gives dPhi=0
-    float q = calcQ(dPhi, dLat, navData.estLocation.latitude);
+  float q = calcQ(dPhi, dLat, navData.estLocation.latitude);
 //    var dLon = d*Math.sin(brng)/q;
-    float dLon = estDist.magnitude * sin(estDist.direction) / q;
+  float dLon = estDist.magnitude * sin(estDist.direction) / q;
 
 //    // check for some daft bugger going past the pole, normalise latitude if so
 //    if (Math.abs(lat2) > Math.PI/2) lat2 = lat2>0 ? Math.PI-lat2 : -(Math.PI-lat2);
-    if(abs(w.latitude) > 3.14159265358979323846 / 2) {
-      if(w.latitude > 0) {
-        w.latitude = 3.14159265358979323846 - w.latitude;
-      } else {
-        w.latitude = -(w.latitude - w.latitude);
-      }
+  if(abs(w.latitude) > 3.14159265358979323846 / 2) {
+    if(w.latitude > 0) {
+      w.latitude = 3.14159265358979323846 - w.latitude;
+    } else {
+      w.latitude = -(3.14159265358979323846 - w.latitude);
     }
-//    lon2 = (lon1+dLon+Math.PI)%(2*Math.PI) - Math.PI;
-    w.longitude = fmod((navData.estLocation.longitude+dLon+3.14159265358979323846),(2*3.14159265358979323846)) - 3.14159265358979323846;
-    
-    navData.estLocation = w;
   }
+//    lon2 = (lon1+dLon+Math.PI)%(2*Math.PI) - Math.PI;
+  w.longitude = fmod((navData.estLocation.longitude+dLon+3.14159265358979323846),(2*3.14159265358979323846)) - 3.14159265358979323846;
+  
+  navData.estLocation = w;
 }
 
 
@@ -207,9 +224,17 @@ void Navigator::updateEstLocation() {
 //
 void Navigator::updateDistanceVectors() {
   if(navSelect) {  // use course waypoints
-    calcDistanceVecFromWaypoints(&navData.curDistance,sensorData.curLocation,course[curCourseIdx]);
+    if(sensorData.gpsUpdated) {
+      calcDistanceVecFromWaypoints(&navData.curDistance,sensorData.curLocation,course[curCourseIdx]);
+    } else {
+      calcDistanceVecFromWaypoints(&navData.curDistance,navData.estLocation,course[curCourseIdx]);
+    }
   } else {  // use hold pattern waypoints
-    calcDistanceVecFromWaypoints(&navData.curDistance,sensorData.curLocation,hold[curHoldIdx]);
+    if(sensorData.gpsUpdated) {
+      calcDistanceVecFromWaypoints(&navData.curDistance,sensorData.curLocation,hold[curHoldIdx]);
+    } else {
+      calcDistanceVecFromWaypoints(&navData.curDistance,navData.estLocation,hold[curHoldIdx]);
+    }
   }
 }
 
@@ -224,15 +249,9 @@ boolean Navigator::advanceWaypoint() {
 
 
 //
-// updates current ground/air/wind speeds & calculates targetAirSpeed
+// calculates curWindSpeed vector
 //
-void Navigator::updateSpeedVectors() {
-  navData.curAirSpeed.direction = sensorData.magBearing;
-  navData.curAirSpeed.magnitude = sensorData.airSpeed;
-  
-  navData.curDistance.direction = sensorData.gpsBearing;
-  navData.curDistance.magnitude = sensorData.gpsSpeed;
-  
+void Navigator::calcCurWindSpeed() {
   subv(&navData.curWindSpeed,navData.curGroundSpeed,navData.curAirSpeed);
 }
 
