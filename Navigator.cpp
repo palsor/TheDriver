@@ -38,8 +38,11 @@ void Navigator::addWaypoint(float lat, float lon) {
   } else {
     errorData.navWaypointError = true;   
   }
-Serial.print("MaxValidCourseIdx ");  // remove
-Serial.println(maxValidCourseIdx,DEC);  // remove
+  
+  if(NAV_DEBUG > 0) {
+    Serial.print("MaxValidCourseIdx ");
+    Serial.println(maxValidCourseIdx,DEC);
+  }
 }
 
 
@@ -57,44 +60,37 @@ void Navigator::beginNavigation() {
     transitionState(NAV_STATE_END);
   }
   
-    // remove
+  if(NAV_DEBUG > 0) {
     Serial.print("MaxValidCourseIdx ");
     Serial.println(maxValidCourseIdx,DEC);
   
-  for(int i=0;i<=maxValidCourseIdx;i++) {
-    Serial.print("C ");
-    Serial.print(i,DEC);
-    Serial.print(" ");
-    Serial.print(course[i].latitude,DEC);
-    Serial.print("\t");
-    Serial.print(course[i].longitude,DEC);
-    Serial.print(" ");
-    Serial.print(courseDistance[i].magnitude,DEC);
-    Serial.print(" ");
-    Serial.print(courseDistance[i].direction,DEC);
-    Serial.print("\n");
-  }
-  
-//    holdDistance[0].magnitude = 8888;
-//  holdDistance[1].magnitude = 7777;
-//  holdDistance[2].magnitude = 6666;
-//  holdDistance[3].magnitude = 5555;
-//  
-    Serial.print("H Max Idx ");
-    Serial.println(maxValidHoldIdx);
-  
-  for(int i=0;i<=maxValidHoldIdx;i++) {
-    Serial.print("H ");
-    Serial.print(i,DEC);
-    Serial.print(" ");
-    Serial.print(hold[i].latitude,DEC);
-    Serial.print("\t");
-    Serial.print(hold[i].longitude,DEC);
-    Serial.print(" ");
-    Serial.print(holdDistance[i].magnitude,DEC);
-    Serial.print(" ");
-    Serial.print(holdDistance[i].direction,DEC);
-    Serial.print("\n");
+    for(int i=0;i<=maxValidCourseIdx;i++) {
+      Serial.print("C ");
+      Serial.print(i,DEC);
+      Serial.print(" ");
+      Serial.print(course[i].latitude,DEC);
+      Serial.print("\t");
+      Serial.print(course[i].longitude,DEC);
+      Serial.print(" ");
+      Serial.print(courseDistance[i].magnitude,DEC);
+      Serial.print(" ");
+      Serial.print(courseDistance[i].direction,DEC);
+      Serial.print("\n");
+    }
+
+    for(int i=0;i<=maxValidHoldIdx;i++) {
+      Serial.print("H ");
+      Serial.print(i,DEC);
+      Serial.print(" ");
+      Serial.print(hold[i].latitude,DEC);
+      Serial.print("\t");
+      Serial.print(hold[i].longitude,DEC);
+      Serial.print(" ");
+      Serial.print(holdDistance[i].magnitude,DEC);
+      Serial.print(" ");
+      Serial.print(holdDistance[i].direction,DEC);
+      Serial.print("\n");
+    }
   }
 }
 
@@ -113,16 +109,16 @@ void Navigator::calcHoldPattern(Waypoint w) {
 
 
 //
-// populates courseDistance vectors from course waypoints
+// populates courseDistance and calcDistance vectors from waypoints 
 //
 void Navigator::calcCourseDistance() {  
   for(int i=1;i <=maxValidCourseIdx; i++) {
-    calcDistanceVector(&courseDistance[i],course[i-1],course[i]);
+    calcDistanceVecFromWaypoints(&courseDistance[i],course[i-1],course[i]);
   }
   
-  calcDistanceVector(&holdDistance[0],hold[maxValidHoldIdx],hold[0]);
+  calcDistanceVecFromWaypoints(&holdDistance[0],hold[maxValidHoldIdx],hold[0]);
   for(int i=1;i <=maxValidHoldIdx; i++) {
-    calcDistanceVector(&holdDistance[i],hold[i-1],hold[i]);
+    calcDistanceVecFromWaypoints(&holdDistance[i],hold[i-1],hold[i]);
   }
 }
 
@@ -131,17 +127,20 @@ void Navigator::calcCourseDistance() {
 // update navigation calculations
 //
 void Navigator::update() {
+  curUpdateTime = millis();  // sets timestamp for this run
   manageCourse();  // manages distances/waypoints
   updateSpeedVectors();  // updates curAirSpeed, curGroundSpeed, curWindSpeed, targAirSpeed
   updateState();  // naviagtion state machine
   calcPilotInputs();  // updates deltaAirSpeed, deltaAltitude, deltaBearing
+  navData.lastUpdateTime = curUpdateTime; // saves timestamp for last run
 }
 
 
 //
-// updates distance and manges next waypoint
+// updates distance to destination and manges next waypoint
 //
 void Navigator::manageCourse() {
+  updateEstLocation();  // updates navData.estLocation
   updateDistanceVectors();  // updates curDistance
   
   while(advanceWaypoint()) {  // advance to the next waypoint if we've arrived at the current one
@@ -159,14 +158,58 @@ void Navigator::manageCourse() {
   }
 }
 
+
+//
+// updates navData.estLocation
+//
+void Navigator::updateEstLocation() {
+  if(0) {  // gps curLocation updated this loop iteration
+    navData.estLocation = sensorData.curLocation;
+  } else {  // gps curLocation NOT updated this loop iteration
+    Waypoint w;
+    Vector estDist = calcDistanceVecFromSpeedVecs();
+    
+    // lat1 = navData.estLocation.latitude
+    // lon1 = navData.estLocation.longitude
+    // lat2 = w.latitude
+    // lon2 = w.longitude
+    
+//    var dLat = d*Math.cos(brng);
+    float dLat = estDist.magnitude * cos(estDist.direction);
+//    var lat2 = lat1 + dLat;
+    w.latitude = navData.estLocation.latitude + dLat;
+//    var dPhi = Math.log(Math.tan(lat2/2+Math.PI/4)/Math.tan(lat1/2+Math.PI/4));
+    float dPhi = calcDPhi(navData.estLocation.latitude, w.latitude);
+//    var q = (!isNaN(dLat/dPhi)) ? dLat/dPhi : Math.cos(lat1);  // E-W line gives dPhi=0
+    float q = calcQ(dPhi, dLat, navData.estLocation.latitude);
+//    var dLon = d*Math.sin(brng)/q;
+    float dLon = estDist.magnitude * sin(estDist.direction) / q;
+
+//    // check for some daft bugger going past the pole, normalise latitude if so
+//    if (Math.abs(lat2) > Math.PI/2) lat2 = lat2>0 ? Math.PI-lat2 : -(Math.PI-lat2);
+    if(abs(w.latitude) > 3.14159265358979323846 / 2) {
+      if(w.latitude > 0) {
+        w.latitude = 3.14159265358979323846 - w.latitude;
+      } else {
+        w.latitude = -(w.latitude - w.latitude);
+      }
+    }
+//    lon2 = (lon1+dLon+Math.PI)%(2*Math.PI) - Math.PI;
+    w.longitude = fmod((navData.estLocation.longitude+dLon+3.14159265358979323846),(2*3.14159265358979323846)) - 3.14159265358979323846;
+    
+    navData.estLocation = w;
+  }
+}
+
+
 //
 // updates curDistance
 //
 void Navigator::updateDistanceVectors() {
   if(navSelect) {  // use course waypoints
-    calcDistanceVector(&navData.curDistance,sensorData.curLocation,course[curCourseIdx]);
+    calcDistanceVecFromWaypoints(&navData.curDistance,sensorData.curLocation,course[curCourseIdx]);
   } else {  // use hold pattern waypoints
-    calcDistanceVector(&navData.curDistance,sensorData.curLocation,hold[curHoldIdx]);
+    calcDistanceVecFromWaypoints(&navData.curDistance,sensorData.curLocation,hold[curHoldIdx]);
   }
 }
 
@@ -264,10 +307,13 @@ boolean Navigator::priorityStateChecks() {
 // transitions state and associated variables
 //
 void Navigator::transitionState(int newState) {
-Serial.print("State ");
-Serial.print(navData.curNavState,DEC);
-Serial.print("->");
-Serial.println(newState,DEC);
+  if(NAV_DEBUG > 0) {
+    Serial.print("State ");
+    Serial.print(navData.curNavState,DEC);
+    Serial.print("->");
+    Serial.println(newState,DEC);
+  }
+  
   navData.prevNavState = navData.curNavState;
   navData.curNavState = newState;
   navData.lastStateTransitionTime = millis();
@@ -341,7 +387,7 @@ void Navigator::calcPilotInputs() {
 //
 // returns a vector calculated from from waypoint 1 to waypoint 2 in *v
 //
-void Navigator::calcDistanceVector(Vector* v, Waypoint w1, Waypoint w2) {
+void Navigator::calcDistanceVecFromWaypoints(Vector* v, Waypoint w1, Waypoint w2) {
   // convert to radians
   float lat1 = convDegreesToRadians(w1.latitude);
   float lon1 = convDegreesToRadians(w1.longitude);
@@ -424,6 +470,17 @@ float Navigator::calcQ(float dPhi, float dLat, float lat1) {
     q = cos(lat1);
   }
   return(q);
+}
+
+
+//
+// calculate distance vector from airSpeed, windSpeed, and delta time
+//
+Vector Navigator::calcDistanceVecFromSpeedVecs(){
+  Vector gs;
+  addv(&gs, navData.curAirSpeed, navData.curWindSpeed);
+  gs.magnitude = gs.magnitude * (curUpdateTime - navData.lastUpdateTime) / 1000;
+  return(gs);
 }
 
 // vector functions

@@ -14,7 +14,7 @@ class Navigator {
     void update();   // update navigation calculations
     
   private:
-  
+  unsigned long curUpdateTime;  // timestamp at the start of the current call to navigator.update()
   Waypoint* course; // Array of waypoints that form the course
   Vector* courseDistance;  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
   Waypoint* hold;  // Array of waypoints that create a holding pattern course around the course origin
@@ -40,6 +40,7 @@ class Navigator {
     
     // update
     void manageCourse();  // manages distances and next waypoint
+      void updateEstLocation();  // updates navData.estLocation
       void updateDistanceVectors();  // updates curDistance
       boolean advanceWaypoint();  // checks if navigation should advance to the next waypoint (true=arrived/advance false=continue navigation)
     void updateSpeedVectors();  // updates ground/air/windSpeed
@@ -50,11 +51,12 @@ class Navigator {
     
     // math
     float calcMinimumAngle(float curBearing, float targBearing);  // calculates a minimum angle between bearings. The result is always between -179 and 180 degrees
-    void calcDistanceVector(Vector* v, Waypoint w1, Waypoint w2);  // returns a vector calculated from from waypoint 1 to waypoint 2
+    void calcDistanceVecFromWaypoints(Vector* v, Waypoint w1, Waypoint w2);  // returns a vector calculated from from waypoint 1 to waypoint 2
       float convDegreesToRadians(float degree);  // degrees to radians conversion
-        float calcDPhi(float lat1, float lat2);  // intermediate term for calcDistanceVector
-        float calcDLon(float lon1, float lon2);  // intermediate term for calcDistanceVector
-        float calcQ(float dPhi, float dLat, float lat1);  // intermediate term for calcDistanceVector
+      float calcDPhi(float lat1, float lat2);  // intermediate term for calcDistanceVector
+      float calcDLon(float lon1, float lon2);  // intermediate term for calcDistanceVector
+      float calcQ(float dPhi, float dLat, float lat1);  // intermediate term for calcDistanceVector
+    Vector calcDistanceVecFromSpeedVecs();  // calculate distance vector from airSpeed, windSpeed, and delta time
     void subv(Vector* v, Vector v1, Vector v2);  // subtract two vectors (v1-v2) and place the result in *v
     void addv(Vector* v, Vector v1, Vector v2);  // add two vectors (v1+v2) and place the result in *v
 

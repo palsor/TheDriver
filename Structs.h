@@ -34,6 +34,8 @@ struct NavData {
   int curNavState;  // current state of navigation state machine
   int prevNavState;  // previous state of navigation state machine
   unsigned long lastStateTransitionTime;  // last navigator state transition time
+  unsigned long lastUpdateTime;  // last navigator update loop time
+  Waypoint estLocation;  // estimated location updated between GPS fixes
   Vector curDistance;  // calculated distance/bearing to next waypoint
   Vector curGroundSpeed;  // created from gpsSpeed/gpsBearing
   Vector curAirSpeed;  // created from airspeed/magBearing
