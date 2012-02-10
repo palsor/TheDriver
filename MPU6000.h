@@ -68,7 +68,15 @@ class MPU6000 {
   private:
     byte spiRead(byte reg);
     void spiWrite(byte reg, byte data);
+    void readRawValues();
     int newdata;
+    float accelX;
+    float accelY;
+    float accelZ;
+    float gyroX;
+    float gyroY;
+    float gyroZ;
+    int tempRaw;
 };
 
 #endif

@@ -26,7 +26,46 @@ void MPU6000::init() {
 // update - read from the MPU, do any necessary calculations, and update data structures
 //
 void MPU6000::update() {
+  readRawValues(); 
+}
+
+//
+// readRawValues - reads values straight from the gyro/accel/temp
+//
+void MPU6000::readRawValues() {
+  int byte_H;
+  int byte_L;
   
+  // Read AccelX
+  byte_H = spiRead(MPUREG_ACCEL_XOUT_H);
+  byte_L = spiRead(MPUREG_ACCEL_XOUT_L);
+  accelX = (float)((byte_H<<8)| byte_L);
+  // Read AccelY
+  byte_H = spiRead(MPUREG_ACCEL_YOUT_H);
+  byte_L = spiRead(MPUREG_ACCEL_YOUT_L);
+  accelY = (float)((byte_H<<8)| byte_L);
+  // Read AccelZ
+  byte_H = spiRead(MPUREG_ACCEL_ZOUT_H);
+  byte_L = spiRead(MPUREG_ACCEL_ZOUT_L);
+  accelZ = (float)((byte_H<<8)| byte_L);
+    
+  // Read Temp
+  byte_H = spiRead(MPUREG_TEMP_OUT_H);
+  byte_L = spiRead(MPUREG_TEMP_OUT_L);
+  tempRaw = (byte_H<<8)| byte_L; 
+     
+  // Read GyroX
+  byte_H = spiRead(MPUREG_GYRO_XOUT_H);
+  byte_L = spiRead(MPUREG_GYRO_XOUT_L);
+  gyroX = (float)((byte_H<<8)| byte_L);
+  // Read GyroY
+  byte_H = spiRead(MPUREG_GYRO_YOUT_H);
+  byte_L = spiRead(MPUREG_GYRO_YOUT_L);
+  gyroY = (float)((byte_H<<8)| byte_L);
+  // Read GyroZ
+  byte_H = spiRead(MPUREG_GYRO_ZOUT_H);
+  byte_L = spiRead(MPUREG_GYRO_ZOUT_L);
+  gyroZ = (float)((byte_H<<8)| byte_L);
 }
 
 //
@@ -57,4 +96,51 @@ void MPU6000::spiWrite(byte reg, byte data)
 void MPU6000::dataInt()
 {
   newdata++;
+}
+
+//
+//Computes the dot product of two vectors
+//
+float Vector_Dot_Product(float vector1[3],float vector2[3])
+{
+  float op=0;
+  
+  for(int c=0; c<3; c++)
+  {
+  op+=vector1[c]*vector2[c];
+  }
+  
+  return op; 
+}
+
+//
+//Computes the cross product of two vectors
+//
+void Vector_Cross_Product(float vectorOut[3], float v1[3],float v2[3])
+{
+  vectorOut[0]= (v1[1]*v2[2]) - (v1[2]*v2[1]);
+  vectorOut[1]= (v1[2]*v2[0]) - (v1[0]*v2[2]);
+  vectorOut[2]= (v1[0]*v2[1]) - (v1[1]*v2[0]);
+}
+
+//
+//Multiply the vector by a scalar
+//
+void Vector_Scale(float vectorOut[3],float vectorIn[3], float scale2)
+{
+  for(int c=0; c<3; c++)
+  {
+   vectorOut[c]=vectorIn[c]*scale2; 
+  }
+}
+
+//
+//adds two vecotrs
+//
+void Vector_Add(float vectorOut[3],float vectorIn1[3], float vectorIn2[3])
+{
+  for(int c=0; c<3; c++)
+  {
+     vectorOut[c]=vectorIn1[c]+vectorIn2[c];
+  }
 }
