@@ -18,6 +18,7 @@
 #define SERIAL_RATE 38400 // baud
 
 // debug config
+//#define SIMULATION_MODE
 #define NAV_DEBUG 0
 #define CONTROLLER_DEBUG 0 
 #define COMPASS_DEBUG 0

@@ -3,12 +3,17 @@
 #include <SPI.h>
 #include <TinyGPS.h>
 #include <SoftwareSerial.h>
+
+#include "Config.h"
+#ifdef SIMULATION_MODE
+#include "SimSensors.h"
+#else
 #include "Sensors.h"
+#endif
 #include "Controller.h"
 #include "Navigator.h"
 #include "Pilot.h"
 #include "Communication.h"
-#include "Config.h"
 #include "Structs.h"
 
 // globals
@@ -18,7 +23,11 @@ PilotData pilotData;
 ErrorData errorData;
 DebugData debugData;
 
+#ifdef SIMULATION_MODE
+SimSensors sensors;
+#else
 Sensors sensors;
+#endif
 Controller controller;
 Navigator navigator;
 Pilot pilot;
@@ -65,6 +74,10 @@ void loop() {
   controller.update(); // send new signals to servos and motor
   
   comms.sendData();    // send data to arduino mini
+  
+  #ifdef SIMULATION_MODE
+  delay(500);
+  #endif
 }
 
 void mpuDataInt() {
