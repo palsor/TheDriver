@@ -57,7 +57,12 @@ void Controller::applyPitchValue() {
 // applies yawValue setting to yaw control hardware
 //
 void Controller::applyYawValue() {
-  yawServo.write(pilotData.yawValue);
+  int angle = round(pilotData.yawValue);
+  yawServo.write(angle);
+  if(NAV_DEBUG > 0) {
+    Serial.print(" angle ");
+    Serial.println(angle,DEC);
+  }
 }
 
 

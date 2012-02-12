@@ -57,7 +57,7 @@ void setup() {
   attachInterrupt(0, mpuDataInt, RISING);
   
   // setup course waypoints
-  navigator.addWaypoint(30.362757,-97.90962);  // brt sky  
+//  navigator.addWaypoint(30.362757,-97.90962);  // brt sky  
   navigator.addWaypoint(30.1804008483,-97.8398818969);  // lk travis
   navigator.addWaypoint(30.4038,-97.853969);  // 4 pts
   navigator.addWaypoint(30.429947,-97.921314);  // c&c
