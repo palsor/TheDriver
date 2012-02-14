@@ -14,6 +14,10 @@ void Pilot::init() {
 void Pilot::update() {
   updateSpeedControl();
   updateHeadingControl();
+  if(NAV_DEBUG > 0) {
+    Serial.print(" yawValue ");
+    Serial.print (pilotData.yawValue,DEC); 
+  }
 }
 
 void Pilot::updateSpeedControl() {
@@ -68,7 +72,7 @@ void Pilot::updateHeadingControl() {
     // T: cruiseAirSpeed, P: cruiseAltitude, Y: deltaBearing, R: N/A
     case NAV_STATE_NAVIGATE:
       pilotData.pitchValue = PITCH_CENTER_ANGLE;
-      pilotData.yawValue = clipMechanicalAngle(navData.deltaBearing,YAW_MECHANICAL_MAX,YAW_CENTER_ANGLE);
+      pilotData.yawValue = YAW_CENTER_ANGLE + clipMechanicalAngle(navData.deltaBearing,YAW_MECHANICAL_MAX);
       pilotData.rollValue = ROLL_CENTER_ANGLE;
       break;
       
@@ -92,10 +96,10 @@ void Pilot::updateHeadingControl() {
   }
 }
 
-float Pilot::clipMechanicalAngle(float angle, int mechMax, int centerAngle) {
+float Pilot::clipMechanicalAngle(float angle, int mechMax) {
   if(angle > 0) {
-    return(min(centerAngle-mechMax,angle));
+    return(min(mechMax,angle));
   } else {
-    return(max(centerAngle+mechMax,angle));
+    return(max(-mechMax,angle));
   }
 }

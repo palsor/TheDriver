@@ -1,19 +1,17 @@
 #include "Navigator.h"
 
 Navigator::Navigator() {
+  course = (Waypoint*)malloc(sizeof(Waypoint) * (MAX_WAYPOINTS)); // Array of waypoints that form the course
+  courseDistance = (Vector*)malloc(sizeof(Vector) * (MAX_WAYPOINTS));  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
 
+  hold = (Waypoint*)malloc(sizeof(Waypoint) * (HOLD_PATTERN_WAYPOINTS));  // Array of waypoints that create a holding pattern course around the course origin
+  holdDistance = (Vector*)malloc(sizeof(Vector) * (HOLD_PATTERN_WAYPOINTS));  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
 }
 
 //
 // initializes navigation indexes to known invalid states
 //
 void Navigator::init() {
-  course = (Waypoint*)malloc(sizeof(Waypoint) * (MAX_WAYPOINTS - 1)); // Array of waypoints that form the course
-  courseDistance = (Vector*)malloc(sizeof(Vector) * (MAX_WAYPOINTS-1));  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
-
-  hold = (Waypoint*)malloc(sizeof(Waypoint) * (HOLD_PATTERN_WAYPOINTS-1));  // Array of waypoints that create a holding pattern course around the course origin
-  holdDistance = (Vector*)malloc(sizeof(Vector) * (HOLD_PATTERN_WAYPOINTS-1));  // Array of vectors (distance/bearing) between waypoints. Index i is waypoint[i-1]->waypoint[i]
-
   navSelect = true;  // nav to course
   curCourseIdx = INVALID_NAV;
   maxValidCourseIdx = INVALID_NAV;
@@ -40,7 +38,7 @@ void Navigator::addWaypoint(float lat, float lon) {
   }
   
   if(NAV_DEBUG > 0) {
-    Serial.print("MaxValidCourseIdx ");
+    Serial.print("MaxValidCourseIdx");
     Serial.println(maxValidCourseIdx,DEC);
   }
 }
@@ -132,6 +130,11 @@ void Navigator::update() {
   updateState();  // naviagtion state machine
   calcPilotInputs();  // updates deltaAirSpeed, deltaAltitude, deltaBearing
   navData.lastUpdateTime = curUpdateTime; // saves timestamp for last run
+  
+  if(NAV_DEBUG > 0) {
+    Serial.print(" deltaBearing ");
+    Serial.print(navData.deltaBearing,DEC); 
+  }
 }
 
 
@@ -162,6 +165,19 @@ void Navigator::manageCourse() {
         curHoldIdx%=maxValidHoldIdx;  // loop through hold pattern waypoints indefinitely
       }
       updateDistanceVectors();  // updates curDistance for navSelect ? course waypoint : hold waypoint
+    
+    if(NAV_DEBUG > 0) {
+      Serial.print("Advance waypoint: navSelect ");
+      Serial.print(navSelect, DEC);
+      Serial.print(" ? ");
+      Serial.print(curCourseIdx,DEC);
+      Serial.print("/");
+      Serial.print(maxValidCourseIdx,DEC);
+      Serial.print(" : ");
+      Serial.print(curHoldIdx,DEC);
+      Serial.print("/");
+      Serial.println(maxValidHoldIdx,DEC);
+    }
   }
 }
 
@@ -234,6 +250,28 @@ void Navigator::updateDistanceVectors() {
       calcDistanceVecFromWaypoints(&navData.curDistance,sensorData.curLocation,hold[curHoldIdx]);
     } else {
       calcDistanceVecFromWaypoints(&navData.curDistance,navData.estLocation,hold[curHoldIdx]);
+    }
+  }
+
+  if(NAV_DEBUG > 0) {
+    if(sensorData.gpsUpdated) {
+      Serial.print("LOC ");
+      Serial.print(navData.estLocation.latitude,DEC);
+      Serial.print(",");
+      Serial.print(navData.estLocation.longitude,DEC);
+      Serial.print(" DIST ");
+      Serial.print(navData.curDistance.magnitude,DEC);
+      Serial.print("/");
+      Serial.print(navData.curDistance.direction,DEC);
+    } else {
+      Serial.print("ELOC ");
+      Serial.print(navData.estLocation.latitude,DEC);
+      Serial.print(",");
+      Serial.print(navData.estLocation.longitude,DEC);
+      Serial.print(" DIST ");
+      Serial.print(navData.curDistance.magnitude,DEC);
+      Serial.print("/");
+      Serial.print(navData.curDistance.direction,DEC);
     }
   }
 }

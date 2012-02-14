@@ -3,12 +3,17 @@
 #include <SPI.h>
 #include <TinyGPS.h>
 #include <SoftwareSerial.h>
+
+#include "Config.h"
+#ifdef SIMULATION_MODE
+#include "SimSensors.h"
+#else
 #include "Sensors.h"
+#endif
 #include "Controller.h"
 #include "Navigator.h"
 #include "Pilot.h"
 #include "Communication.h"
-#include "Config.h"
 #include "Structs.h"
 
 // globals
@@ -18,7 +23,11 @@ PilotData pilotData;
 ErrorData errorData;
 DebugData debugData;
 
+#ifdef SIMULATION_MODE
+SimSensors sensors;
+#else
 Sensors sensors;
+#endif
 Controller controller;
 Navigator navigator;
 Pilot pilot;
@@ -46,7 +55,7 @@ void setup() {
   attachInterrupt(0, mpuDataInt, RISING);
   
   // setup course waypoints
-  navigator.addWaypoint(30.362757,-97.90962);  // brt sky  
+//  navigator.addWaypoint(30.362757,-97.90962);  // brt sky  
   navigator.addWaypoint(30.1804008483,-97.8398818969);  // lk travis
   navigator.addWaypoint(30.4038,-97.853969);  // 4 pts
   navigator.addWaypoint(30.429947,-97.921314);  // c&c
@@ -62,6 +71,10 @@ void loop() {
   pilot.update();      // update plane controls based on desired navigation
   controller.update(); // send new signals to servos and motor
   comms.sendData();    // send data to arduino mini
+  
+  #ifdef SIMULATION_MODE
+  delay(500);
+  #endif
 }
 
 void mpuDataInt() {

@@ -18,6 +18,7 @@
 
 
 // debug config
+//#define SIMULATION_MODE
 #define NAV_DEBUG 0
 #define CONTROLLER_DEBUG 0 
 #define COMPASS_DEBUG 0
