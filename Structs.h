@@ -4,12 +4,12 @@
 struct Waypoint {
   float latitude;
   float longitude;
-};
+} __attribute__((packed));
 
 struct Vector {
   float direction;
   float magnitude;
-};
+} __attribute__((packed));
 
 struct SensorData {
   float magBearing;   
@@ -29,7 +29,7 @@ struct SensorData {
   float gpsAltitude;
   float pressAltitude;
   float airSpeed;
-};
+} __attribute__((packed));
 
 struct NavData {
   int curNavState;  // current state of navigation state machine
@@ -45,19 +45,19 @@ struct NavData {
   float deltaAirSpeed;  // speed change fed to Pilot
   float deltaAltitude;  // altitude change fed to Pilot
   float deltaBearing;  // bearing change fed to Pilot
-};
+} __attribute__((packed));
 
 struct PilotData {
   float throttleValue;  // throttle value sent to controller (0-99%)
   float pitchValue;  // pitch value sent to controller (0-360 degrees)
   float yawValue;  // yaw value sent to controller (0-360 degrees)
   float rollValue;  // roll value sent to controller (0-360 degrees)
-};
+} __attribute__((packed));
 
 struct ErrorData {
   bool compassReadError;
   bool navWaypointError;
-};
+} __attribute__((packed));
 
 struct DebugData {
   unsigned long gpsParseErrors;
@@ -74,6 +74,6 @@ struct DebugData {
   unsigned long navWorstCaseDelayTime;
   unsigned long navWorstCaseRunTime;
   unsigned long averageSerialTime;
-};
+} __attribute__((packed));
 
 #endif

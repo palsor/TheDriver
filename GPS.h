@@ -17,6 +17,8 @@
 #define MTK_OTUPUT_5HZ	"$PMTK220,200*2C\r\n"
 #define MTK_OUTPUT_10HZ	"$PMTK220,100*2F\r\n"
 
+#define SERIAL_RATE 38400 // baud
+
 class GPS {
   public:
     GPS();

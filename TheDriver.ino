@@ -24,8 +24,6 @@ Navigator navigator;
 Pilot pilot;
 Communication comms;
 
-unsigned long nextCommTime = 0;
-
 void setup() {
   
   // init SPI bus - must come before sensor and comms init
@@ -63,7 +61,6 @@ void loop() {
   navigator.update();  // update navigation calculations
   pilot.update();      // update plane controls based on desired navigation
   controller.update(); // send new signals to servos and motor
-  
   comms.sendData();    // send data to arduino mini
 }
 

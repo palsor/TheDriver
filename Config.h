@@ -12,10 +12,10 @@
 
 #define MPU_SS_PIN 4
 #define GPS_MUX_PIN 7
-#define MINI_SS_PIN 8
+#define MINI_SS_PIN 10
 
 // output config
-#define SERIAL_RATE 38400 // baud
+
 
 // debug config
 #define NAV_DEBUG 0

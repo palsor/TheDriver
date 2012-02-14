@@ -13,8 +13,7 @@ class Communication {
     void sendData();
     
   private:
-    byte spiRead(byte reg);
-    void spiWrite(byte reg, byte data);
+    void transmit(byte byteToTrans);
 };
 
 #endif
