@@ -1,6 +1,11 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
+#define SENSOR_DATA 0
+#define NAV_DATA 1
+#define ERROR_DATA 2
+#define DEBUG_DATA 3
+
 struct Waypoint {
   float latitude;
   float longitude;

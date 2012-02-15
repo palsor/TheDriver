@@ -9,7 +9,7 @@ Communication::Communication() {}
 // init
 //
 void Communication::init() {
-
+  int structToTrans = 0;
 }
 
 //
@@ -17,33 +17,46 @@ void Communication::init() {
 //
 void Communication::sendData() {
   byte checksum = 0;
+  byte* structPtr;
+  byte id = structToTrans;
+  int length = 0;
+  
+  if (structToTrans == SENSOR_DATA) {
+    structPtr = (byte*)&sensorData;
+    length = sizeof(SensorData);
+    structToTrans++;
+  }
+  else if (structToTrans == NAV_DATA) {
+    structPtr = (byte*)&navData;
+    length = sizeof(NavData);
+    structToTrans++;
+  }
+  else if (structToTrans == ERROR_DATA) {
+    structPtr = (byte*)&errorData;
+    length = sizeof(ErrorData);
+    structToTrans++;
+  }
+  else if (structToTrans == DEBUG_DATA) {
+    structPtr = (byte*)&debugData;
+    length = sizeof(DebugData);
+    structToTrans = 0;
+  }
     
   digitalWrite(MINI_SS_PIN, LOW);
   
   transmit(0xAA);
   transmit(0xAA);
-
-  for (byte* ptr = (byte*)&sensorData; ptr < (byte*)&sensorData + sizeof(SensorData); ptr++) {
-    transmit(*ptr);
-    checksum += *ptr;
-  }
   
-  for (byte* ptr = (byte*)&navData; ptr < (byte*)&navData + sizeof(NavData); ptr++) {
-    transmit(*ptr);
-    checksum += *ptr;
-  }
-  
+  // send pilot data
   for (byte* ptr = (byte*)&pilotData; ptr < (byte*)&pilotData + sizeof(PilotData); ptr++) {
     transmit(*ptr);
     checksum += *ptr;
   }
   
-  for (byte* ptr = (byte*)&errorData; ptr < (byte*)&errorData + sizeof(ErrorData); ptr++) {
-    transmit(*ptr);
-    checksum += *ptr;
-  }
+  transmit(id);
   
-  for (byte* ptr = (byte*)&debugData; ptr < (byte*)&debugData + sizeof(DebugData); ptr++) {
+  // send whatever other struct we're sending this iteration
+  for (byte* ptr = structPtr; ptr < structPtr + length; ptr++) {
     transmit(*ptr);
     checksum += *ptr;
   }
@@ -57,5 +70,5 @@ void Communication::sendData() {
 
 void Communication::transmit(byte byteToTrans) {
   byte dump = SPI.transfer(byteToTrans);
-  delayMicroseconds(5);
+  delayMicroseconds(SPI_TX_sDELAY);
 }

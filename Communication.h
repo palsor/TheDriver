@@ -14,6 +14,7 @@ class Communication {
     
   private:
     void transmit(byte byteToTrans);
+    int structToTrans;
 };
 
 #endif
