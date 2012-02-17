@@ -15,7 +15,7 @@
 #define MINI_SS_PIN 10
 
 // output config
-#define SPI_TX_DELAY 1 // us
+#define SPI_TX_DELAY 10 // us
 
 // debug config
 //#define SIMULATION_MODE

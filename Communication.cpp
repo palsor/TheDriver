@@ -13,7 +13,7 @@ void Communication::init() {
 }
 
 //
-// sendData - send data over SPI
+// sendData - send data over SPI, protocol is [AAAA][struct_id][data][5555][checksum], only data is included in checksum
 //
 void Communication::sendData() {
   byte checksum = 0;
@@ -46,6 +46,7 @@ void Communication::sendData() {
   
   transmit(0xAA);
   transmit(0xAA);
+  transmit(PILOT_DATA);
   
   // send pilot data
   for (byte* ptr = (byte*)&pilotData; ptr < (byte*)&pilotData + sizeof(PilotData); ptr++) {
@@ -53,6 +54,14 @@ void Communication::sendData() {
     checksum += *ptr;
   }
   
+  transmit(0x55);
+  transmit(0x55);
+  transmit(checksum);
+  
+  checksum = 0;
+  
+  transmit(0xAA);
+  transmit(0xAA);
   transmit(id);
   
   // send whatever other struct we're sending this iteration
@@ -70,5 +79,5 @@ void Communication::sendData() {
 
 void Communication::transmit(byte byteToTrans) {
   byte dump = SPI.transfer(byteToTrans);
-  delayMicroseconds(SPI_TX_sDELAY);
+  delayMicroseconds(SPI_TX_DELAY);
 }
