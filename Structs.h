@@ -22,7 +22,7 @@ struct SensorData {
   float gpsBearing;   
   float gpsSpeed;       
   Waypoint curLocation;
-  boolean gpsUpdated;
+  bool gpsUpdated;
   float hDliution;      
   float vDilution;
   unsigned long fixAge;

@@ -9,6 +9,7 @@
 #include "GPS.h"
 #include "Config.h"
 #include "Externs.h"
+#include "Barometer.h"
 
 class Sensors {
   public:
@@ -21,6 +22,7 @@ class Sensors {
      Compass compass;
      GPS gps;
      MPU6000 mpu;
+     Barometer barometer;
 };
 
 #endif
