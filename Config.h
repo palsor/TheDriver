@@ -15,7 +15,8 @@
 #define MINI_SS_PIN 10
 
 // output config
-#define SPI_TX_DELAY 10 // us
+#define SPI_TX_DELAY 5 // us
+#define SERIAL_RATE 38400 // baud
 
 // debug config
 //#define SIMULATION_MODE

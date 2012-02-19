@@ -2,7 +2,6 @@
 #define GPS_H
 
 #include <Arduino.h>
-#include <TinyGPS.h>
 
 #include "Config.h"
 #include "Externs.h"
@@ -17,15 +16,20 @@
 #define MTK_OTUPUT_5HZ	"$PMTK220,200*2C\r\n"
 #define MTK_OUTPUT_10HZ	"$PMTK220,100*2F\r\n"
 
-#define SERIAL_RATE 38400 // baud
-
 class GPS {
   public:
     GPS();
     void init();
     void update();
   private:
-    TinyGPS gpsParser;
+    void readData();
+    void parseData();
+    int state;
+    int totalBytes;
+    int bytesRead;
+    byte buff[32];
+    byte ckA;
+    byte ckB;
 };
 
 #endif

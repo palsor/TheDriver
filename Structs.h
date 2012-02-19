@@ -23,16 +23,19 @@ struct SensorData {
   float gpsSpeed;       
   Waypoint curLocation;
   bool gpsUpdated;
-  float hDliution;      
+  float hDilution;      
   float vDilution;
   unsigned long fixAge;
+  float gpsAltitude;
+  int gpsSatellites;
+  int gpsFixType;
   float pitch;   
   float yaw;
   float roll;
   float gyroXRate;
   float gyroYRate;
   float gyroZRate;
-  float gpsAltitude;
+  
   float pressAltitude;
   float airSpeed;
 } __attribute__((packed));
