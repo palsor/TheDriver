@@ -1,34 +1,34 @@
 #include <Servo.h>
 #include <Wire.h>
 #include <SPI.h>
-#include <TinyGPS.h>
-#include <SoftwareSerial.h>
 
 #include "Config.h"
-#ifdef SIMULATION_MODE
-#include "SimSensors.h"
-#else
-#include "Sensors.h"
-#endif
-#include "Controller.h"
 #include "Navigator.h"
 #include "Pilot.h"
 #include "Communication.h"
 #include "Structs.h"
 
-// globals
+#ifdef SIMULATION_MODE
+#include "SimSensors.h"
+#else
+#include "Sensors.h"
+#endif
+
+
+// globals data structs
 SensorData sensorData;
 NavData navData;
 PilotData pilotData;
 ErrorData errorData;
 DebugData debugData;
 
+// working objects
 #ifdef SIMULATION_MODE
 SimSensors sensors;
 #else
 Sensors sensors;
 #endif
-Controller controller;
+
 Navigator navigator;
 Pilot pilot;
 Communication comms;
@@ -45,7 +45,6 @@ void setup() {
   delay(10);
   
   // init our objects
-  controller.init();
   pilot.init();
   navigator.init();
   sensors.init();
@@ -69,7 +68,6 @@ void loop() {
   sensors.update();    // read from the sensors
   navigator.update();  // update navigation calculations
   pilot.update();      // update plane controls based on desired navigation
-  controller.update(); // send new signals to servos and motor
   comms.sendData();    // send data to arduino mini
   
   #ifdef SIMULATION_MODE

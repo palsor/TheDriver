@@ -2,7 +2,6 @@
 #define SIMSENSORS_H
 
 #include <Arduino.h>
-#include <TinyGPS.h>
 
 #include "Config.h"
 #include "Externs.h"

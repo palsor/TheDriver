@@ -2,7 +2,6 @@
 #define SENSORS_H
 
 #include <Arduino.h>
-#include <TinyGPS.h>
 
 #include "Compass.h"
 #include "MPU6000.h"
