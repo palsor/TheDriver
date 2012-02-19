@@ -24,7 +24,7 @@ void GPS::init() {
   sensorData.gpsUpdated = 0;
   
   if (WAIT_FOR_GPS_LOCK) {
-    while (sensData.gpsUpdated == 0) {
+    while (sensorData.gpsFixType == 1) {
       readData();  
     }
   }
@@ -109,5 +109,5 @@ void GPS::parseData() {
   sensorData.gpsBearing = (float)(((long)buff[19] << 24) + ((long)buff[18] << 16) + ((long)buff[17] << 8) + (long)buff[16]) / 100; 
   sensorData.gpsSatellites = buff[20];
   sensorData.gpsFixType = buff[21];
-  sensorData.hDilution = (float)((long)buff[29] << 8 + (long)buff[28]) / 100;
+  sensorData.gpsHDOP = (float)((long)buff[29] << 8 + (long)buff[28]) / 100;
 }
