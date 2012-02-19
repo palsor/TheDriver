@@ -12,9 +12,13 @@ class Pilot {
     void update();  // update plane controls based on desired navigation
     
   private:
+    unsigned long curUpdateTime;
+    unsigned long lastUpdateTime;
+    float maxThrottleRate;
     void updateSpeedControl();
     void updateHeadingControl();
     float clipMechanicalAngle(float angle, int mechMax);
+    float manageThrottleRate();
 };
 
 #endif

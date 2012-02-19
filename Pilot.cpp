@@ -5,18 +5,20 @@ Pilot::Pilot() {
 }
 
 void Pilot::init() {
-  
+  maxThrottleRate = MAX_THROTTLE_RATE / 1000;
 }
 
 //
 // update plane controls based on desired navigation
 //
 void Pilot::update() {
+  curUpdateTime = millis();
   updateSpeedControl();
   updateHeadingControl();
-  if(NAV_DEBUG > 0) {
-    Serial.print(" yawValue ");
-    Serial.print (pilotData.yawValue,DEC); 
+  lastUpdateTime = curUpdateTime;
+  if(PILOT_DEBUG > 0) {
+    Serial.print("PIL yawValue ");
+    Serial.println(pilotData.yawValue,DEC); 
   }
 }
 
@@ -55,24 +57,26 @@ void Pilot::updateHeadingControl() {
       pilotData.rollValue = ROLL_CENTER_ANGLE;
       break;
       
-    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: hold takeoff heading, R: N/A
+//    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: hold takeoff heading, R: N/A
+//    case NAV_STATE_TAKEOFF:
+//      pilotData.pitchValue = PITCH_CENTER_ANGLE;
+//      pilotData.yawValue = YAW_CENTER_ANGLE;
+//      pilotData.rollValue = ROLL_CENTER_ANGLE;
+//      break;
+//      
+//    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: upWind, R: N/A
+//    case NAV_STATE_CLIMB:
+//      pilotData.pitchValue = PITCH_CENTER_ANGLE;
+//      pilotData.yawValue = YAW_CENTER_ANGLE;
+//      pilotData.rollValue = ROLL_CENTER_ANGLE;
+//      break;
+      
     case NAV_STATE_TAKEOFF:
-      pilotData.pitchValue = PITCH_CENTER_ANGLE;
-      pilotData.yawValue = YAW_CENTER_ANGLE;
-      pilotData.rollValue = ROLL_CENTER_ANGLE;
-      break;
-      
-    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: upWind, R: N/A
     case NAV_STATE_CLIMB:
-      pilotData.pitchValue = PITCH_CENTER_ANGLE;
-      pilotData.yawValue = YAW_CENTER_ANGLE;
-      pilotData.rollValue = ROLL_CENTER_ANGLE;
-      break;
-      
     // T: cruiseAirSpeed, P: cruiseAltitude, Y: deltaBearing, R: N/A
     case NAV_STATE_NAVIGATE:
       pilotData.pitchValue = PITCH_CENTER_ANGLE;
-      pilotData.yawValue = YAW_CENTER_ANGLE + clipMechanicalAngle(navData.deltaBearing,YAW_MECHANICAL_MAX);
+      pilotData.yawValue = YAW_CENTER_ANGLE + clipMechanicalAngle(navData.deltaBearing,YAW_MECHANICAL_MAX) * REVERSE_YAW_SERVO;
       pilotData.rollValue = ROLL_CENTER_ANGLE;
       break;
       
@@ -95,6 +99,13 @@ void Pilot::updateHeadingControl() {
       break;
   }
 }
+
+ float Pilot::manageThrottleRate() {
+//   unsigned long deltaTime = curUpdateTime - lastUpdateTime;
+//   float requestedThrottleIncr = abs(navData.deltaSpeed) / 1000;
+//   float throttleIncr = min(requestedThrottleIncr,maxThrottleIncr) * deltaTime;
+//   pilotData.throttleValue = (navData.deltaSpeed > 0) ? pilotData.throttleValue+=throttleIncr : pilotData.throttleValue-=throttleIncr;
+ }
 
 float Pilot::clipMechanicalAngle(float angle, int mechMax) {
   if(angle > 0) {

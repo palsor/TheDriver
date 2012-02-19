@@ -54,14 +54,41 @@ void setup() {
   attachInterrupt(0, mpuDataInt, RISING);
   
   // setup course waypoints
-//  navigator.addWaypoint(30.362757,-97.90962);  // brt sky  
-  navigator.addWaypoint(30.1804008483,-97.8398818969);  // lk travis
-  navigator.addWaypoint(30.4038,-97.853969);  // 4 pts
-  navigator.addWaypoint(30.429947,-97.921314);  // c&c
-  navigator.addWaypoint(42.35111111,-71.04083333);  // nyc
-  navigator.addWaypoint(50.36388889,-4.15694444);  // london
+//  navigator.addWaypoint(30.362757,-97.90962);  // 13233 brt sky  
+//  navigator.addWaypoint(30.359468,-97.904153); // Capella & Quinlan
+//  navigator.addWaypoint(30.389732,-97.882315);  // quinlan & 620
+//  navigator.addWaypoint(30.340962,-97.968588);  // lohman's crossing & 620
+//  navigator.addWaypoint(30.4038,-97.853969);  // 4 pts
+//  navigator.addWaypoint(30.455183,-97.826045);  // 620 & anderson mill
+//  navigator.addWaypoint(30.447075,-97.811361);  // anderson mill @ mex food
+//  navigator.addWaypoint(30.356086,-97.908718); // Quinlan & Bright Sky
+//  navigator.addWaypoint(30.357274,-97.909227);  // brt sky & casseopia
+//  navigator.addWaypoint(30.359007,-97.906118);  // casseopia & little dipper
+//  navigator.addWaypoint(30.360123,-97.909407);  // little dipper brt sky
+//  navigator.addWaypoint(30.1804008483,-97.8398818969);  // lk travis
+//  navigator.addWaypoint(30.4038,-97.853969);  // 4 pts
+//  navigator.addWaypoint(30.429947,-97.921314);  // c&c
+//  navigator.addWaypoint(42.35111111,-71.04083333);  // nyc
+//  navigator.addWaypoint(50.36388889,-4.15694444);  // london
+
+  navigator.addWaypoint(30.359468,-97.904153); // Capella & Quinlan
+  navigator.addWaypoint(30.356086,-97.908718); // Quinlan & Bright Sky
+  navigator.addWaypoint(30.357274,-97.909227);  // brt sky & casseopia
+  navigator.addWaypoint(30.359007,-97.906118);  // casseopia & little dipper
+  navigator.addWaypoint(30.360123,-97.909407);  // little dipper brt sky
+
+
+  
+  sensorData.curLocation.latitude = INVALID_NAV;
+  sensorData.curLocation.longitude = INVALID_NAV;
+
+do {
+    sensors.update();    // read from the sensors - valid sensorData.curLocation required before navigator.beginNavigation
+    delay(10);
+  } while(sensorData.curLocation.latitude == INVALID_NAV);
   
   navigator.beginNavigation();
+
 } 
 
 void loop() {
@@ -69,10 +96,6 @@ void loop() {
   navigator.update();  // update navigation calculations
   pilot.update();      // update plane controls based on desired navigation
   comms.sendData();    // send data to arduino mini
-  
-  #ifdef SIMULATION_MODE
-  delay(500);
-  #endif
 }
 
 void mpuDataInt() {
