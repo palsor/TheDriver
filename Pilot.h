@@ -14,11 +14,13 @@ class Pilot {
   private:
     unsigned long curUpdateTime;
     unsigned long lastUpdateTime;
-    float maxThrottleRate;
+    unsigned long dt;  // deltaTime since last loop iteration
     void updateSpeedControl();
     void updateHeadingControl();
+    float fmap(float var, float min1, float max1, float min2, float max2);  // float version of the map function
     float clipMechanicalAngle(float angle, int mechMax);
-    float manageThrottleRate();
+    float maintainCruiseAirSpeed();
+    float maintainCruiseAltitude();
 };
 
 #endif

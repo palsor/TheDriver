@@ -17,6 +17,8 @@ void Navigator::init() {
   maxValidCourseIdx = INVALID_NAV;
   curHoldIdx = INVALID_NAV;
   maxValidHoldIdx = INVALID_NAV;
+  navData.estLocation.latitude = INVALID_NAV;
+  navData.estLocation.latitude = INVALID_NAV;
   navData.curNavState = NAV_STATE_END;
   navData.prevNavState = NAV_STATE_END;
   navData.lastStateTransitionTime = millis();
@@ -38,11 +40,6 @@ void Navigator::addWaypoint(float lat, float lon) {
   } else {
     errorData.navWaypointError = true;   
   }
-  
-  if(NAV_DEBUG > 0) {
-    Serial.print("MaxValidCourseIdx");
-    Serial.println(maxValidCourseIdx,DEC);
-  }
 }
 
 
@@ -61,39 +58,6 @@ void Navigator::beginNavigation() {
     transitionState(NAV_STATE_START);
   } else {  // no valid waypoints added to course
     transitionState(NAV_STATE_END);
-  }
-  
-  if(NAV_DEBUG > 0) {
-    Serial.print("MaxValidCourseIdx ");
-    Serial.println(maxValidCourseIdx,DEC);
-  
-    for(int i=0;i<=maxValidCourseIdx;i++) {
-      Serial.print("C ");
-      Serial.print(i,DEC);
-      Serial.print("\t");
-      Serial.print(course[i].latitude,DEC);
-      Serial.print("\t");
-      Serial.print(course[i].longitude,DEC);
-      Serial.print("\t");
-      Serial.print(courseDistance[i].magnitude,DEC);
-      Serial.print("\t");
-      Serial.print(courseDistance[i].direction,DEC);
-      Serial.print("\n");
-    }
-
-    for(int i=0;i<=maxValidHoldIdx;i++) {
-      Serial.print("H ");
-      Serial.print(i,DEC);
-      Serial.print("\t");
-      Serial.print(hold[i].latitude,DEC);
-      Serial.print("\t");
-      Serial.print(hold[i].longitude,DEC);
-      Serial.print("\t");
-      Serial.print(holdDistance[i].magnitude,DEC);
-      Serial.print("\t");
-      Serial.print(holdDistance[i].direction,DEC);
-      Serial.print("\n");
-    }
   }
 }
 
@@ -145,22 +109,9 @@ void Navigator::manageCourse() {
   updateSpeedVectors();  // updates cur air/ground speed with sensor data
 
   if(sensorData.gpsUpdated == true) {  // if gps updated this iteration
-    if(NAV_DEBUG > 0) {
-      Serial.println();
-      Serial.print("ERROR ");
-      Serial.print(navData.estLocation.latitude - sensorData.curLocation.latitude,DEC);
-      Serial.print(",");
-      Serial.print(navData.estLocation.longitude - sensorData.curLocation.longitude,DEC);
-      Serial.print(" ACCUM ");
-      Serial.print(estDLatAccum,DEC);
-      Serial.print(",");
-      Serial.println(estDLonAccum,DEC);
-    }
 
     calcCurWindSpeed();  // re-calculate curWindSpeed
-    navData.estLocation = sensorData.curLocation;  // update estimated location with actual gps fix location
-    estDLatAccum = 0.0;  // zero estimated location accumulators
-    estDLonAccum = 0.0;  // zero estimated location accumulators
+    resetEstLocation();  // reset estimator
     
   } else {  // gps not updated this iteration
     updateEstLocation();  // updates navData.estLocation
@@ -180,28 +131,8 @@ void Navigator::manageCourse() {
         curHoldIdx%=maxValidHoldIdx;  // loop through hold pattern waypoints indefinitely
       }
       
-      if(NAV_DEBUG > 0) {
-        Serial.print((sensorData.gpsUpdated==true) ? "DIST " : "EDIST ");
-        Serial.print(navData.curDistance.magnitude,DEC);
-        Serial.print("/");
-        Serial.print(navData.curDistance.direction,DEC);
-        Serial.print(" ");
-      }
-      
       updateDistanceVectors();  // updates curDistance for navSelect ? course waypoint : hold waypoint
-    
-    if(NAV_DEBUG > 0) {
-      Serial.print("Advance waypoint: navSelect ");
-      Serial.print(navSelect, DEC);
-      Serial.print(" ? ");
-      Serial.print(curCourseIdx,DEC);
-      Serial.print("/");
-      Serial.print(maxValidCourseIdx,DEC);
-      Serial.print(" : ");
-      Serial.print(curHoldIdx,DEC);
-      Serial.print("/");
-      Serial.println(maxValidHoldIdx,DEC);
-    }
+
   }
   
   if(sensorData.gpsUpdated == true && NAV_DEBUG > 0) {
@@ -215,7 +146,15 @@ void Navigator::manageCourse() {
      Serial.print(" CL ");
      Serial.print(sensorData.curLocation.latitude,DEC);
      Serial.print(",");
-     Serial.println(sensorData.curLocation.longitude,DEC);
+     Serial.print(sensorData.curLocation.longitude,DEC);
+     Serial.print(" ALT ");
+     Serial.print(sensorData.gpsAltitude,DEC);
+     Serial.print(" FIX ");
+     Serial.print(sensorData.gpsFixType,DEC);
+     Serial.print(" SAT ");
+     Serial.print(sensorData.gpsSatellites,DEC);
+     Serial.print(" HDOP ");
+     Serial.println(sensorData.gpsHDOP,DEC);
       Serial.print("CUR GS ");
       Serial.print(navData.curGroundSpeed.magnitude,DEC);
       Serial.print("/");
@@ -228,13 +167,9 @@ void Navigator::manageCourse() {
       Serial.print(navData.curWindSpeed.magnitude,DEC);
       Serial.print("/");
       Serial.println(navData.curWindSpeed.direction,DEC);
-  }
-  if(sensorData.gpsUpdated == true && NAV_DEBUG == -2) {
-     Serial.print(sensorData.curLocation.latitude,DEC);
-     Serial.print("\t");
-     Serial.print(sensorData.curLocation.longitude,DEC);
-     Serial.print("\tLOC\n"); 
-  }
+      Serial.println();
+  }  
+  
 }
 
 
@@ -252,6 +187,16 @@ void Navigator::updateSpeedVectors() {
 
 }
 
+//
+// resets accumulators and navData.estLocation using sensorData.curLocation
+//
+void Navigator::resetEstLocation() {
+  navData.estLocation = sensorData.curLocation;  // update estimated location with actual gps fix location
+  navData.estGroundSpeed = navData.curGroundSpeed;  // reset estimated groundSpeed with gps data
+  estDLatAccum = 0.0;  // zero estimated location accumulators
+  estDLonAccum = 0.0;  // zero estimated location accumulators
+}
+
 
 //
 // updates navData.estLocation
@@ -262,72 +207,11 @@ void Navigator::updateEstLocation() {
   float estDistDirRad = convDegreesToRadians(navData.estDistance.direction);
   
   if(navData.estDistance.magnitude > 0.0) {
-//    estDLatAccum += navData.estDistance.magnitude * cos(estDistDirRad) / EARTH_RADIUS;
-//    estDLonAccum += navData.estDistance.magnitude * sin(estDistDirRad) / EARTH_RADIUS;
     estDLatAccum += calcDecDLat(navData.estDistance.magnitude * cos(estDistDirRad));
     navData.estLocation.latitude =  sensorData.curLocation.latitude + estDLatAccum;
+    
     estDLonAccum += calcDecDLon(navData.estDistance.magnitude * sin(estDistDirRad), navData.estLocation.latitude);
     navData.estLocation.longitude = sensorData.curLocation.longitude + estDLonAccum;
-  }
-
-//  if(navData.estDistance.magnitude <= 0.0) { return; };
-////where ln is natural log and % is modulo, Δlon is taking shortest route (<180°), and R is the earth’s radius
-//  float d = navData.estDistance.magnitude / EARTH_RADIUS;
-//  float brng = convDegreesToRadians(navData.estDistance.direction);
-//  float lat1 = navData.estLocation.latitude;
-//  float lon1 = navData.estLocation.longitude;
-//  
-////var dLat = d*Math.cos(brng);
-//  float dLat = d * cos(brng);
-////var lat2 = lat1 + dLat;
-//  float lat2 = lat1 + dLat;
-////var dPhi = Math.log(Math.tan(lat2/2+Math.PI/4)/Math.tan(lat1/2+Math.PI/4));
-//  float dPhi = calcDPhi(lat1,lat2);
-////var q = (!isNaN(dLat/dPhi)) ? dLat/dPhi : Math.cos(lat1);  // E-W line gives dPhi=0
-//  float q = calcQ(dPhi, dLat, lat1);
-////var dLon = d*Math.sin(brng)/q;
-//  float dLon = d * sin(brng)/q;
-////// check for some daft bugger going past the pole, normalise latitude if so
-////if (Math.abs(lat2) > Math.PI/2) lat2 = lat2>0 ? Math.PI-lat2 : -(Math.PI-lat2);
-////  if (abs(lat2) > 3.14159265358979323846/2) {
-////    lat2 = lat2>0 ? 3.14159265358979323846-lat2 : -(3.14159265358979323846-lat2);
-////  }
-////lon2 = (lon1+dLon+Math.PI)%(2*Math.PI) - Math.PI;
-////  float lon2 = fmod((lon1+dLon+3.14159265358979323846),(2*3.14159265358979323846)) - 3.14159265358979323846;
-//  estDLatAccum += dLat;
-//  estDLonAccum += dLon;
-//  navData.estLocation.latitude =  sensorData.curLocation.latitude + estDLatAccum;
-//  navData.estLocation.longitude = sensorData.curLocation.longitude + estDLonAccum;
-  
-  if(NAV_DEBUG > 1) {
-    Serial.print("EGS ");
-    Serial.print(navData.estGroundSpeed.magnitude,DEC);
-    Serial.print("/");
-    Serial.print(navData.estGroundSpeed.direction,DEC);
-    Serial.print(" EDIST ");
-    Serial.print(navData.estDistance.magnitude,DEC);
-    Serial.print("/");
-    Serial.print(navData.estDistance.direction,DEC);
-    Serial.print(" ELOC ");
-    Serial.print(navData.estLocation.latitude,DEC);
-    Serial.print(",");
-    Serial.print(navData.estLocation.longitude,DEC);
-    Serial.print(" DT ");
-    Serial.print(curUpdateTime - navData.lastUpdateTime,DEC);
-//    Serial.print(" DLAT ");
-//    Serial.print(dLat,DEC);
-//    Serial.print(" DLON ");
-//    Serial.print(dLon,DEC);
-    Serial.print(" DACC ");
-    Serial.print(estDLatAccum,DEC);
-    Serial.print(",");
-    Serial.println(estDLonAccum,DEC);
-  }
-  if(NAV_DEBUG == -2) {
-    Serial.print(navData.estLocation.latitude,DEC);
-    Serial.print("\t");
-    Serial.print(navData.estLocation.longitude,DEC);
-    Serial.print("\tELOC\n");
   }
 }
 
@@ -365,16 +249,9 @@ boolean Navigator::advanceWaypoint() {
 // calculates curWindSpeed vector
 //
 void Navigator::calcCurWindSpeed() {
-  if(navData.curGroundSpeed.magnitude > 0.0) {
+  if((navData.curGroundSpeed.magnitude > 0.0) && (navData.curWindSpeed.magnitude > 0.0)) {
     subv(&navData.curWindSpeed,navData.curGroundSpeed,navData.curAirSpeed);
   }
-  
-//  if(NAV_DEBUG > 2) {
-//    Serial.print("WS ");
-//    Serial.print(navData.curWindSpeed.magnitude,DEC);
-//    Serial.print("/");
-//    Serial.println(navData.curWindSpeed.direction,DEC);
-//  }  
 }
 
 
@@ -448,13 +325,6 @@ boolean Navigator::priorityStateChecks() {
 // transitions state and associated variables
 //
 void Navigator::transitionState(int newState) {
-  if(NAV_DEBUG > 0) {
-    Serial.print("State ");
-    Serial.print(navData.curNavState,DEC);
-    Serial.print("->");
-    Serial.println(newState,DEC);
-  }
-  
   navData.prevNavState = navData.curNavState;
   navData.curNavState = newState;
   navData.lastStateTransitionTime = millis();
@@ -493,17 +363,9 @@ void Navigator::calcPilotInputs() {
     case NAV_STATE_CLIMB:
     // T: cruiseAirSpeed, P: cruiseAltitude, Y: deltaBearing, R: N/A
     case NAV_STATE_NAVIGATE:
-      navData.deltaAirSpeed = 0;  // cruiseAirSpeed - sensorData.airSpeed
-      navData.deltaAltitude = 0;  // cruiseAltitude - sensorData.pressAltitude
-      navData.deltaBearing = calcMinimumAngle(navData.estGroundSpeed.direction,navData.curDistance.direction);
-//      if(NAV_DEBUG == -1) {
-//        Serial.print("NAV deltaBearing ");
-//        Serial.print(navData.deltaBearing); 
-//        Serial.print(" EGS ");
-//        Serial.print(navData.estGroundSpeed.direction,DEC); 
-//        Serial.print(" CD ");
-//        Serial.println(navData.curDistance.direction,DEC); 
-//      }
+      navData.deltaAirSpeed = CRUISE_AIR_SPEED - sensorData.airSpeed;  // cruiseAirSpeed - sensorData.airSpeed
+      navData.deltaAltitude = CRUISE_ALTITUDE - sensorData.gpsAltitude;  // cruiseAltitude - sensorData.pressAltitude
+      navData.deltaBearing = calcMinimumAngle((sensorData.gpsUpdated == true) ? sensorData.gpsBearing : navData.estGroundSpeed.direction,navData.curDistance.direction);
       break;
       
     // T: max, P: RECOVER_PITCH, Y: upWind, R: N/A  
@@ -530,12 +392,7 @@ void Navigator::calcPilotInputs() {
     // ?  
     default:
       break;
-  }  
-  
-  if(sensorData.gpsUpdated == true && NAV_DEBUG > 0) {
-    Serial.print("deltaBearing ");
-    Serial.println(navData.deltaBearing,DEC); 
-  }
+  } 
 }
 
 
@@ -644,7 +501,8 @@ void Navigator::calcEstDistance(){
   // 1 knot = 1.85200 kilometers/hr
   // 1 knots = 0.000514444444 kilometers / second  // NOTE: The Google conversion answer is WRONG!!!
   navData.estDistance.direction = navData.estGroundSpeed.direction;
-  navData.estDistance.magnitude = navData.estGroundSpeed.magnitude * 0.00014998800096 * (curUpdateTime - navData.lastUpdateTime) / 1000;
+//  navData.estDistance.magnitude = navData.estGroundSpeed.magnitude * 0.00014998800096 * (curUpdateTime - navData.lastUpdateTime) / 1000;
+  navData.estDistance.magnitude = navData.estGroundSpeed.magnitude / 1000 * (curUpdateTime - navData.lastUpdateTime) / 1000;
 }
 
 
@@ -726,6 +584,42 @@ void Navigator::addv(Vector* v, Vector v1, Vector v2){
   v->direction = convRadiansToDegrees(v->direction);
   if(v->direction > 359) { v->direction -= 360; };
   if(v->direction < 0) { v->direction += 360; };
+}
+
+/*
+
+  if(NAV_DEBUG > 0) {
+    Serial.print("MaxValidCourseIdx ");
+    Serial.println(maxValidCourseIdx,DEC);
+  
+    for(int i=0;i<=maxValidCourseIdx;i++) {
+      Serial.print("C ");
+      Serial.print(i,DEC);
+      Serial.print("\t");
+      Serial.print(course[i].latitude,DEC);
+      Serial.print("\t");
+      Serial.print(course[i].longitude,DEC);
+      Serial.print("\t");
+      Serial.print(courseDistance[i].magnitude,DEC);
+      Serial.print("\t");
+      Serial.print(courseDistance[i].direction,DEC);
+      Serial.print("\n");
+    }
+
+    for(int i=0;i<=maxValidHoldIdx;i++) {
+      Serial.print("H ");
+      Serial.print(i,DEC);
+      Serial.print("\t");
+      Serial.print(hold[i].latitude,DEC);
+      Serial.print("\t");
+      Serial.print(hold[i].longitude,DEC);
+      Serial.print("\t");
+      Serial.print(holdDistance[i].magnitude,DEC);
+      Serial.print("\t");
+      Serial.print(holdDistance[i].direction,DEC);
+      Serial.print("\n");
+    }
+  }
 
 //  if(NAV_DEBUG > 3) {
 //    Serial.print("addv ");
@@ -741,4 +635,186 @@ void Navigator::addv(Vector* v, Vector v1, Vector v2){
 //    Serial.print(",");
 //    Serial.println(y,DEC);
 //  }
-}
+
+//      if(NAV_DEBUG == -1) {
+//        Serial.print("NAV deltaBearing ");
+//        Serial.print(navData.deltaBearing); 
+//        Serial.print(" EGS ");
+//        Serial.print(navData.estGroundSpeed.direction,DEC); 
+//        Serial.print(" CD ");
+//        Serial.println(navData.curDistance.direction,DEC); 
+//      }
+
+//  if(NAV_DEBUG > 2) {
+//    Serial.print("WS ");
+//    Serial.print(navData.curWindSpeed.magnitude,DEC);
+//    Serial.print("/");
+//    Serial.println(navData.curWindSpeed.direction,DEC);
+//  }  
+
+//  if(navData.estDistance.magnitude <= 0.0) { return; };
+////where ln is natural log and % is modulo, Δlon is taking shortest route (<180°), and R is the earth’s radius
+//  float d = navData.estDistance.magnitude / EARTH_RADIUS;
+//  float brng = convDegreesToRadians(navData.estDistance.direction);
+//  float lat1 = navData.estLocation.latitude;
+//  float lon1 = navData.estLocation.longitude;
+//  
+////var dLat = d*Math.cos(brng);
+//  float dLat = d * cos(brng);
+////var lat2 = lat1 + dLat;
+//  float lat2 = lat1 + dLat;
+////var dPhi = Math.log(Math.tan(lat2/2+Math.PI/4)/Math.tan(lat1/2+Math.PI/4));
+//  float dPhi = calcDPhi(lat1,lat2);
+////var q = (!isNaN(dLat/dPhi)) ? dLat/dPhi : Math.cos(lat1);  // E-W line gives dPhi=0
+//  float q = calcQ(dPhi, dLat, lat1);
+////var dLon = d*Math.sin(brng)/q;
+//  float dLon = d * sin(brng)/q;
+////// check for some daft bugger going past the pole, normalise latitude if so
+////if (Math.abs(lat2) > Math.PI/2) lat2 = lat2>0 ? Math.PI-lat2 : -(Math.PI-lat2);
+////  if (abs(lat2) > 3.14159265358979323846/2) {
+////    lat2 = lat2>0 ? 3.14159265358979323846-lat2 : -(3.14159265358979323846-lat2);
+////  }
+////lon2 = (lon1+dLon+Math.PI)%(2*Math.PI) - Math.PI;
+////  float lon2 = fmod((lon1+dLon+3.14159265358979323846),(2*3.14159265358979323846)) - 3.14159265358979323846;
+//  estDLatAccum += dLat;
+//  estDLonAccum += dLon;
+//  navData.estLocation.latitude =  sensorData.curLocation.latitude + estDLatAccum;
+//  navData.estLocation.longitude = sensorData.curLocation.longitude + estDLonAccum;
+  
+  if(NAV_DEBUG > 1) {
+    Serial.print("EGS ");
+    Serial.print(navData.estGroundSpeed.magnitude,DEC);
+    Serial.print("/");
+    Serial.print(navData.estGroundSpeed.direction,DEC);
+    Serial.print(" EDIST ");
+    Serial.print(navData.estDistance.magnitude,DEC);
+    Serial.print("/");
+    Serial.print(navData.estDistance.direction,DEC);
+    Serial.print(" ELOC ");
+    Serial.print(navData.estLocation.latitude,DEC);
+    Serial.print(",");
+    Serial.print(navData.estLocation.longitude,DEC);
+    Serial.print(" DT ");
+    Serial.print(curUpdateTime - navData.lastUpdateTime,DEC);
+//    Serial.print(" DLAT ");
+//    Serial.print(dLat,DEC);
+//    Serial.print(" DLON ");
+//    Serial.print(dLon,DEC);
+    Serial.print(" DACC ");
+    Serial.print(estDLatAccum,DEC);
+    Serial.print(",");
+    Serial.println(estDLonAccum,DEC);
+  }
+//  if(NAV_DEBUG == -2) {
+//    Serial.print(navData.estLocation.latitude,DEC);
+//    Serial.print("\t");
+//    Serial.print(navData.estLocation.longitude,DEC);
+//    Serial.print("\tELOC\n");
+//  }
+
+  if(sensorData.gpsUpdated == true && NAV_DEBUG > 0) {
+    Serial.print("deltaBearing ");
+    Serial.println(navData.deltaBearing,DEC); 
+  }
+  
+      
+      if(NAV_DEBUG > 0) {
+        Serial.print((sensorData.gpsUpdated==true) ? "DIST " : "EDIST ");
+        Serial.print(navData.curDistance.magnitude,DEC);
+        Serial.print("/");
+        Serial.print(navData.curDistance.direction,DEC);
+        Serial.print(" ");
+      }
+    
+  if(NAV_DEBUG == -2) {
+    if(sensorData.gpsUpdated == true) {
+       Serial.print(sensorData.curLocation.latitude,DEC);
+       Serial.print("\t");
+       Serial.print(sensorData.curLocation.longitude,DEC);
+       Serial.print("\tsmall_blue\n");
+    } else {
+       Serial.print(navData.estLocation.latitude,DEC);
+       Serial.print("\t");
+       Serial.print(navData.estLocation.longitude,DEC);
+       Serial.print("\tsmall_yellow\n"); 
+    }
+  }
+
+  if(sensorData.gpsUpdated == true && NAV_DEBUG > 0) {
+     Serial.print("NAV ");
+     Serial.print((navSelect) ? "C" : "H");
+     Serial.print((navSelect) ? curCourseIdx : curHoldIdx, DEC);
+     Serial.print(" ");
+     Serial.print(navData.curDistance.magnitude,DEC);
+     Serial.print("/");
+     Serial.print(navData.curDistance.direction,DEC);
+     Serial.print(" CL ");
+     Serial.print(sensorData.curLocation.latitude,DEC);
+     Serial.print(",");
+     Serial.print(sensorData.curLocation.longitude,DEC);
+     Serial.print(" ALT ");
+     Serial.print(sensorData.gpsAltitude,DEC);
+     Serial.print(" FIX ");
+     Serial.print(sensorData.gpsFixType,DEC);
+     Serial.print(" SAT ");
+     Serial.println(sensorData.gpsSatellites,DEC);
+      Serial.print("CUR GS ");
+      Serial.print(navData.curGroundSpeed.magnitude,DEC);
+      Serial.print("/");
+      Serial.print(navData.curGroundSpeed.direction,DEC);
+      Serial.print(" AS ");
+      Serial.print(navData.curAirSpeed.magnitude,DEC);
+      Serial.print("/");
+      Serial.print(navData.curAirSpeed.direction,DEC);
+      Serial.print(" WS ");
+      Serial.print(navData.curWindSpeed.magnitude,DEC);
+      Serial.print("/");
+      Serial.println(navData.curWindSpeed.direction,DEC);
+  }
+  
+    if(NAV_DEBUG > 0) {
+      Serial.println();
+      Serial.print("ERROR ");
+      Serial.print(navData.estLocation.latitude - sensorData.curLocation.latitude,DEC);
+      Serial.print(",");
+      Serial.print(navData.estLocation.longitude - sensorData.curLocation.longitude,DEC);
+      Serial.print(" ACCUM ");
+      Serial.print(estDLatAccum,DEC);
+      Serial.print(",");
+      Serial.print(estDLonAccum,DEC);
+      Serial.print(" EL ");
+      Serial.print(navData.estLocation.latitude,DEC);
+      Serial.print(",");
+      Serial.print(navData.estLocation.longitude,DEC);
+      Serial.print(" DT ");
+      Serial.print(curUpdateTime - navData.lastUpdateTime,DEC);
+      Serial.print(" HDOP ");
+      Serial.println(sensorData.gpsHDOP,DEC);
+    }
+    
+    if(NAV_DEBUG > 0) {
+      Serial.print("Advance waypoint: navSelect ");
+      Serial.print(navSelect, DEC);
+      Serial.print(" ? ");
+      Serial.print(curCourseIdx,DEC);
+      Serial.print("/");
+      Serial.print(maxValidCourseIdx,DEC);
+      Serial.print(" : ");
+      Serial.print(curHoldIdx,DEC);
+      Serial.print("/");
+      Serial.println(maxValidHoldIdx,DEC);
+    }
+
+  
+  if(NAV_DEBUG > 0) {
+    Serial.print("MaxValidCourseIdx");
+    Serial.println(maxValidCourseIdx,DEC);
+  }
+  
+  if(NAV_DEBUG > 0) {
+    Serial.print("State ");
+    Serial.print(navData.curNavState,DEC);
+    Serial.print("->");
+    Serial.println(newState,DEC);
+  }
+*/

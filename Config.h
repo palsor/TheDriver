@@ -45,19 +45,24 @@
 #define NAV_STATE_NAVIGATE 3
 #define INVALID_NAV -1
 #define ARRIVED_THRESHOLD 0.02
-#define GPS_BEARING_SPEED_THRESHOLD 1.0  //
 
 // dynamics
-#define MIN_AIR_SPEED 0
-#define CRUISE_AIR_SPEED 0
-#define CLIMB_PITCH 15
-#define RECOVER_PITCH -15
-#define MAX_THROTTLE_RATE 50  // %/sec
+#define MIN_AIR_SPEED 2
+#define CRUISE_AIR_SPEED 10  // m/s ~22 mph
+#define MAX_AIR_SPEED 20  // m/s ~44 mph
+#define CRUISE_ALTITUDE 228  // m ~800 ft
+#define CRUISE_ALTITUDE_THRESHOLD 10  // at CRUISE_ALTITUDE+/-CRUISE_ALTITUDE_THRESHOLD pitch control reaches +/- PITCH_MAX 
+#define PITCH_MAX 20  // degrees
+#define CLIMB_PITCH 15  // degrees
+#define RECOVER_PITCH -15  // degrees
+#define THROTTLE_MAX_RATE 25  // %/sec
+#define THROTTLE_MIN 10  // %
+#define THROTTLE_MAX 90  // %
 
 // mechanical controls
 #define PITCH_CENTER_ANGLE 90  // approximate steering on-center angle for servo
 #define PITCH_MECHANICAL_MAX 25  // mechanical limits of servo travel
-#define REVERSE_YAW_SERVO -1  // reverse orientation of yaw servo
+#define YAW_SERVO_POLARITY -1  // 1 normal polarity; -1 reverse polarity of yaw servo
 #define YAW_CENTER_ANGLE 90  // approximate steering on-center angle for servo
 #define YAW_MECHANICAL_MAX 25  // mechanical limits of servo travel
 #define ROLL_CENTER_ANGLE 90  // approximate steering on-center angle for servo

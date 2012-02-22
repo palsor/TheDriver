@@ -49,7 +49,7 @@ struct NavData {
   unsigned long lastUpdateTime;  // last navigator update loop time
   Waypoint estLocation;  // estimated location updated between GPS fixes
   Vector curDistance;  // calculated distance/bearing to next waypoint
-  Vector estDistance;  // estimated distance/bearing to next waypoint
+  Vector estDistance;  // estimated distance since last loop iteration (NOT to next waypoint)
   Vector curGroundSpeed;  // created from gpsSpeed/gpsBearing
   Vector estGroundSpeed;  // created from curAirSpeed+curWindSpeed
   Vector curAirSpeed;  // created from airspeed/magBearing
