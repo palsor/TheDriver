@@ -29,16 +29,6 @@ void Communication::sendData() {
   else if (structToTrans == NAV_DATA) {
     structPtr = (byte*)&navData;
     length = sizeof(NavData);
-    structToTrans++;
-  }
-  else if (structToTrans == ERROR_DATA) {
-    structPtr = (byte*)&errorData;
-    length = sizeof(ErrorData);
-    structToTrans++;
-  }
-  else if (structToTrans == DEBUG_DATA) {
-    structPtr = (byte*)&debugData;
-    length = sizeof(DebugData);
     structToTrans = 0;
   }
     
