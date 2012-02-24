@@ -16,6 +16,7 @@
 
 // output config
 #define SPI_TX_DELAY 5 // us
+#define SPI_TX_RADIO_DELAY 150 // us
 #define SERIAL_RATE 38400 // baud
 
 // debug config

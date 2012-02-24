@@ -59,6 +59,9 @@ void Compass::update() {
   // convert heading to degrees and apply magnetic declination  
   tempBearing = (tempBearing * 180 / 3.14159) + MAG_DECLINATION;
   
+  if (tempBearing < 0)
+    tempBearing += 360;
+  
   // copy to data structure
   sensorData.magBearing = tempBearing;
 }
