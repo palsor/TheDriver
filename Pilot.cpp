@@ -128,7 +128,7 @@ float Pilot::maintainCruiseAltitude() {
 // 
 //
 float Pilot::clipMechanicalAngle(float angle, int mechMax) {
-  constrain(angle,-mechMax,mechMax);
+  return(constrain(angle,(float)-mechMax,(float)mechMax));
 }
 
 
