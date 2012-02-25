@@ -134,42 +134,6 @@ void Navigator::manageCourse() {
       updateDistanceVectors();  // updates curDistance for navSelect ? course waypoint : hold waypoint
 
   }
-  
-  if(sensorData.gpsUpdated == true && NAV_DEBUG > 0) {
-     Serial.print("NAV ");
-     Serial.print((navSelect) ? "C" : "H");
-     Serial.print((navSelect) ? curCourseIdx : curHoldIdx, DEC);
-     Serial.print(" ");
-     Serial.print(navData.curDistance.magnitude,DEC);
-     Serial.print("/");
-     Serial.print(navData.curDistance.direction,DEC);
-     Serial.print(" CL ");
-     Serial.print(sensorData.curLocation.latitude,DEC);
-     Serial.print(",");
-     Serial.print(sensorData.curLocation.longitude,DEC);
-     Serial.print(" ALT ");
-     Serial.print(sensorData.gpsAltitude,DEC);
-     Serial.print(" FIX ");
-     Serial.print(sensorData.gpsFixType,DEC);
-     Serial.print(" SAT ");
-     Serial.print(sensorData.gpsSatellites,DEC);
-     Serial.print(" HDOP ");
-     Serial.println(sensorData.gpsHDOP,DEC);
-      Serial.print("CUR GS ");
-      Serial.print(navData.curGroundSpeed.magnitude,DEC);
-      Serial.print("/");
-      Serial.print(navData.curGroundSpeed.direction,DEC);
-      Serial.print(" AS ");
-      Serial.print(navData.curAirSpeed.magnitude,DEC);
-      Serial.print("/");
-      Serial.print(navData.curAirSpeed.direction,DEC);
-      Serial.print(" WS ");
-      Serial.print(navData.curWindSpeed.magnitude,DEC);
-      Serial.print("/");
-      Serial.println(navData.curWindSpeed.direction,DEC);
-      Serial.println();
-  }  
-  
 }
 
 
@@ -365,7 +329,7 @@ void Navigator::calcPilotInputs() {
     case NAV_STATE_NAVIGATE:
       navData.deltaAirSpeed = CRUISE_AIR_SPEED - sensorData.airSpeed;  // cruiseAirSpeed - sensorData.airSpeed
       navData.deltaAltitude = CRUISE_ALTITUDE - sensorData.gpsAltitude;  // cruiseAltitude - sensorData.pressAltitude
-      navData.deltaBearing = calcMinimumAngle((sensorData.gpsUpdated == true) ? sensorData.gpsBearing : navData.estGroundSpeed.direction,navData.curDistance.direction);
+      navData.deltaBearing = calcMinimumAngle((sensorData.gpsUpdated == true) ? navData.curGroundSpeed.direction : navData.estGroundSpeed.direction,navData.curDistance.direction);
       break;
       
     // T: max, P: RECOVER_PITCH, Y: upWind, R: N/A  
