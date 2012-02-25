@@ -156,7 +156,7 @@ void Navigator::updateSpeedVectors() {
 //
 void Navigator::resetEstLocation() {
   navData.estLocation = sensorData.curLocation;  // update estimated location with actual gps fix location
-  navData.estGroundSpeed = navData.curGroundSpeed;  // reset estimated groundSpeed with gps data
+  navData.estGroundSpeed = (navData.curWindSpeed.magnitude > 0.0) ? navData.curGroundSpeed : navData.curAirSpeed;
   estDLatAccum = 0.0;  // zero estimated location accumulators
   estDLonAccum = 0.0;  // zero estimated location accumulators
 }
@@ -329,7 +329,7 @@ void Navigator::calcPilotInputs() {
     case NAV_STATE_NAVIGATE:
       navData.deltaAirSpeed = CRUISE_AIR_SPEED - sensorData.airSpeed;  // cruiseAirSpeed - sensorData.airSpeed
       navData.deltaAltitude = CRUISE_ALTITUDE - sensorData.gpsAltitude;  // cruiseAltitude - sensorData.pressAltitude
-      navData.deltaBearing = calcMinimumAngle((sensorData.gpsUpdated == true) ? navData.curGroundSpeed.direction : navData.estGroundSpeed.direction,navData.curDistance.direction);
+      navData.deltaBearing = calcMinimumAngle(navData.estGroundSpeed.direction,navData.curDistance.direction);
       break;
       
     // T: max, P: RECOVER_PITCH, Y: upWind, R: N/A  
