@@ -24,17 +24,11 @@ struct SensorData {
   Waypoint curLocation; // lat/long in degrees
   float gpsHDOP;        // decimal
   float gpsAltitude;    // meters
-  float pitch;          // degrees
-  float yaw;            // degrees
-  float roll;           // degrees
-  float gyroXRate;      // d/s
-  float gyroYRate;      // d/s
-  float gyroZRate;      // d/s
-  float accelX;         // m/s^2
-  float accelY;         // m/s^2
-  float accelZ;         // m/s^2
+  float pitch;          // degrees in earth's frame of reference
+  float yaw;            // degrees in earth's frame of reference
+  float roll;           // degrees in earth's frame of reference
   float pressAltitude;  // meters
-  float airSpeed;       // m/s
+  float airSpeed[3];    // m/s
   float battVoltage;    // volts
   bool gpsUpdated;      // 1 = GPS data was updated, 0 = GPS was not updated
   byte radioMuxSelect;  // 1 = radio, 0 = autopilot

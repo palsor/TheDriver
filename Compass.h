@@ -21,7 +21,7 @@ class Compass {
   public:
     Compass();
     void init();
-    void update();
+    boolean readRawValues(float* mag);
 };
 
 #endif

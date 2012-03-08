@@ -13,6 +13,9 @@
 #define MPU_SS_PIN 4
 #define GPS_MUX_PIN 7
 #define MINI_SS_PIN 10
+#define AIRSPEED_PIN 0
+#define BATTERY_PIN 1
+#define RADIO_MUX_PIN 2
 
 // output config
 #define SPI_TX_DELAY 5 // us

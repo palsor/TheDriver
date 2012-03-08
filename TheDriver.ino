@@ -77,11 +77,6 @@ void setup() {
   navigator.addWaypoint(30.359007,-97.906118);  // casseopia & little dipper
   navigator.addWaypoint(30.360123,-97.909407);  // little dipper brt sky
 
-do {
-    sensors.update();    // read from the sensors - valid sensorData.curLocation required before navigator.beginNavigation
-    delay(1000);
-  } while(sensorData.gpsFixType < 3);
-  
   navigator.beginNavigation();
 
 } 

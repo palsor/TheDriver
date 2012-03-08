@@ -58,25 +58,21 @@
 #define	BIT_RAW_RDY_EN		    0x01
 #define	BIT_I2C_IF_DIS              0x10
 
+#define GYRO_SCALE 16.384
+#define GYRO_CALIBRATION_ROUNDS 5
+
 class MPU6000 {
   public:
     MPU6000();
     void init();
-    void update();    
+    boolean readRawValues(float* gyro, float* accel);   
     void dataInt();
     
   private:
     byte spiRead(byte reg);
     void spiWrite(byte reg, byte data);
-    void readRawValues();
-    int newdata;
-    float accelX;
-    float accelY;
-    float accelZ;
-    float gyroX;
-    float gyroY;
-    float gyroZ;
-    int tempRaw;
+    volatile int newdata;
+    float gyroCalibrationOffset[3];
 };
 
 #endif

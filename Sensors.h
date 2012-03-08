@@ -22,6 +22,12 @@ class Sensors {
      GPS gps;
      MPU6000 mpu;
      Barometer barometer;
+     
+     float rotation[3][3];
+     
+     float matrixDot(float* a, float* b);
+     void matrixUnit(float* b);
+     void matrixCross(float* a, float* b, float* c);
 };
 
 #endif
