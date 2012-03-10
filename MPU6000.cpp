@@ -61,15 +61,15 @@ boolean MPU6000::readRawValues(float* gyro, float* accel) {
     // Read AccelX
     byte_H = spiRead(MPUREG_ACCEL_XOUT_H);
     byte_L = spiRead(MPUREG_ACCEL_XOUT_L);
-    accel[0] = (float)(((int)byte_H<<8)| byte_L);
+    accel[0] = (float)(((int)byte_H<<8)| byte_L) * ACCEL_X_SIGN;
     // Read AccelY
     byte_H = spiRead(MPUREG_ACCEL_YOUT_H);
     byte_L = spiRead(MPUREG_ACCEL_YOUT_L);
-    accel[1] = (float)(((int)byte_H<<8)| byte_L);
+    accel[1] = (float)(((int)byte_H<<8)| byte_L) * ACCEL_Y_SIGN;
     // Read AccelZ
     byte_H = spiRead(MPUREG_ACCEL_ZOUT_H);
     byte_L = spiRead(MPUREG_ACCEL_ZOUT_L);
-    accel[2] = (float)(((int)byte_H<<8)| byte_L);
+    accel[2] = (float)(((int)byte_H<<8)| byte_L) * ACCEL_Z_SIGN;
     
     // Read Temp
     // byte_H = spiRead(MPUREG_TEMP_OUT_H);
@@ -79,16 +79,16 @@ boolean MPU6000::readRawValues(float* gyro, float* accel) {
     // Read GyroX
     byte_H = spiRead(MPUREG_GYRO_XOUT_H);
     byte_L = spiRead(MPUREG_GYRO_XOUT_L);
-    gyro[0] = ((float)(((int)byte_H<<8) | byte_L)) - gyroCalibrationOffset[0];
+    gyro[0] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_X_SIGN - gyroCalibrationOffset[0];
   
     // Read GyroY
     byte_H = spiRead(MPUREG_GYRO_YOUT_H);
     byte_L = spiRead(MPUREG_GYRO_YOUT_L);
-    gyro[1] = ((float)(((int)byte_H<<8) | byte_L)) - gyroCalibrationOffset[1];
+    gyro[1] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_Y_SIGN - gyroCalibrationOffset[1];
     // Read GyroZ
     byte_H = spiRead(MPUREG_GYRO_ZOUT_H);
     byte_L = spiRead(MPUREG_GYRO_ZOUT_L);
-    gyro[2] = ((float)(((int)byte_H<<8) | byte_L)) - gyroCalibrationOffset[2];
+    gyro[2] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_Z_SIGN - gyroCalibrationOffset[2];
     
     newdata = 0;
     returnValue = true;

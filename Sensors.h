@@ -9,6 +9,7 @@
 #include "Config.h"
 #include "Externs.h"
 #include "Barometer.h"
+#include "Constants.h"
 
 class Sensors {
   public:

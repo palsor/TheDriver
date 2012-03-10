@@ -40,9 +40,9 @@ boolean Compass::readRawValues(float* mag) {
   if (i==6)  // All bytes received?
   {
     // MSB byte first, then LSB, X,Y,Z
-    mag[0] = (float)((((int)buff[0]) << 8) | buff[1]);    // X axis
-    mag[1] = (float)((((int)buff[4]) << 8) | buff[5]);    // Y axis
-    mag[2] = (float)((((int)buff[2]) << 8) | buff[3]);    // Z axis
+    mag[0] = (float)((((int)buff[0]) << 8) | buff[1]) * MAG_X_SIGN;    // X axis
+    mag[1] = (float)((((int)buff[4]) << 8) | buff[5]) * MAG_Y_SIGN;    // Y axis
+    mag[2] = (float)((((int)buff[2]) << 8) | buff[3]) * MAG_Z_SIGN;    // Z axis
     returnValue = true;
   }
   

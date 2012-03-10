@@ -17,6 +17,17 @@
 #define BATTERY_PIN 1
 #define RADIO_MUX_PIN 2
 
+// sensor configs
+#define GYRO_X_SIGN 1
+#define GYRO_Y_SIGN 1
+#define GYRO_Z_SIGN 1
+#define ACCEL_X_SIGN 1
+#define ACCEL_Y_SIGN -1
+#define ACCEL_Z_SIGN -1
+#define MAG_X_SIGN 1
+#define MAG_Y_SIGN -1
+#define MAG_Z_SIGN 1
+
 // output config
 #define SPI_TX_DELAY 5 // us
 #define SPI_TX_RADIO_DELAY 150 // us

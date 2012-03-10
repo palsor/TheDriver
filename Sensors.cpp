@@ -48,9 +48,21 @@ void Sensors::update() {
       rotation[2][2] = accel[2];
       
       // calulate updated Euler angles
-      sensorData.pitch = atan2(rotation[2][0], sqrt(rotation[2][1]*rotation[2][1] + rotation[2][2]*rotation[2][2])) / 0.0174532925;
-      sensorData.yaw = atan2(rotation[1][0], rotation[0][0]) / 0.0174532925;
-      sensorData.roll = atan2(rotation[2][1], rotation[2][2]) / 0.0174532925;
+      sensorData.pitch = asin(rotation[2][0]);
+      sensorData.yaw = atan2(rotation[1][0]/cos(sensorData.pitch), rotation[0][0]/cos(sensorData.pitch)) * RAD2DEG;
+      sensorData.roll = -atan2(rotation[2][1]/cos(sensorData.pitch), rotation[2][2]/cos(sensorData.pitch)) * RAD2DEG;
+      
+      // fixup euler angles
+      sensorData.pitch = sensorData.pitch * RAD2DEG;
+      
+      if (sensorData.pitch < 0)
+        sensorData.pitch += 360;
+      
+      if (sensorData.yaw < 0)
+        sensorData.yaw += 360;
+        
+      if (sensorData.roll < 0)
+        sensorData.roll += 360;
     }
 }
 
