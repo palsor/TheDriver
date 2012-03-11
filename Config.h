@@ -16,6 +16,7 @@
 #define AIRSPEED_PIN 0
 #define BATTERY_PIN 1
 #define RADIO_MUX_PIN 2
+#define SPI_SLAVE_ACK_PIN 8
 
 // sensor configs
 #define GYRO_X_SIGN 1
@@ -29,12 +30,9 @@
 #define MAG_Z_SIGN 1
 
 // output config
-#define SPI_TX_DELAY 5 // us
-#define SPI_TX_RADIO_DELAY 150 // us
 #define SERIAL_RATE 38400 // baud
 
 // debug config
-//#define SIMULATION_MODE
 #define NAV_DEBUG 0
 #define PILOT_DEBUG 0
 #define CONTROLLER_DEBUG 0 

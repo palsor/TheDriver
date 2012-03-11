@@ -7,12 +7,7 @@
 #include "Pilot.h"
 #include "Communication.h"
 #include "Structs.h"
-
-#ifdef SIMULATION_MODE
-#include "SimSensors.h"
-#else
 #include "Sensors.h"
-#endif
 
 
 // globals data structs
@@ -23,12 +18,7 @@ ErrorData errorData;
 DebugData debugData;
 
 // working objects
-#ifdef SIMULATION_MODE
-SimSensors sensors;
-#else
 Sensors sensors;
-#endif
-
 Navigator navigator;
 Pilot pilot;
 Communication comms;
@@ -40,6 +30,7 @@ void setup() {
   digitalWrite(MPU_SS_PIN, HIGH);
   pinMode(MINI_SS_PIN, OUTPUT);
   digitalWrite(MINI_SS_PIN, HIGH);
+  pinMode(SPI_SLAVE_ACK_PIN, INPUT);
   SPI.begin();
   SPI.setClockDivider(SPI_CLOCK_DIV16);      // SPI at 1Mhz (on 16Mhz clock)
   delay(10);

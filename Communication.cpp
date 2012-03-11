@@ -37,9 +37,6 @@ void Communication::transmitStruct(byte id, byte* ptr, int length, boolean delay
   byte checksum = 0;
   
   transmit(0xAA);
-  if (delayAfterFirst)
-    delayMicroseconds(SPI_TX_RADIO_DELAY);
-    
   transmit(0xAA);
   transmit(id);
   
@@ -54,6 +51,7 @@ void Communication::transmitStruct(byte id, byte* ptr, int length, boolean delay
 }
 
 void Communication::transmit(byte byteToTrans) {
+  int val = digitalRead(SPI_SLAVE_ACK_PIN);
   byte dump = SPI.transfer(byteToTrans);
-  delayMicroseconds(SPI_TX_DELAY);
+  while(digitalRead(SPI_SLAVE_ACK_PIN) == val) {}  
 }

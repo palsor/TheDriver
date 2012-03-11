@@ -327,7 +327,7 @@ void Navigator::calcPilotInputs() {
     case NAV_STATE_CLIMB:
     // T: cruiseAirSpeed, P: cruiseAltitude, Y: deltaBearing, R: N/A
     case NAV_STATE_NAVIGATE:
-      navData.deltaAirSpeed = CRUISE_AIR_SPEED - sensorData.airSpeed;  // cruiseAirSpeed - sensorData.airSpeed
+//      navData.deltaAirSpeed = CRUISE_AIR_SPEED - sensorData.airSpeed;  // cruiseAirSpeed - sensorData.airSpeed
       navData.deltaAltitude = CRUISE_ALTITUDE - sensorData.gpsAltitude;  // cruiseAltitude - sensorData.pressAltitude
       navData.deltaBearing = calcMinimumAngle(navData.estGroundSpeed.direction,navData.curDistance.direction);
       break;
