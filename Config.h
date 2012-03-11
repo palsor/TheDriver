@@ -44,6 +44,11 @@
 // compass settings
 #define MAG_DECLINATION -6
 
+// DCM controls
+#define GYRO_WEIGHT 0
+#define MAG_WEIGHT 0.5
+#define ACCEL_WEIGHT 0.5
+
 // Navigator controls
 #define EARTH_RADIUS 6371  // km avg earth radius
 #define MAX_WAYPOINTS 7

@@ -36,6 +36,7 @@ void MPU6000::init() {
     
     for (float i = 1; i <= GYRO_CALIBRATION_ROUNDS; i++) {
       delay(1000);
+      newdata++;
       if (readRawValues(gyroMpu, accelMpu)) {
         tempOffset[0] = tempOffset[0] * (1.0f - 1.0f/i) + gyroMpu[0] * 1.0f/i;
         tempOffset[1] = tempOffset[1] * (1.0f - 1.0f/i) + gyroMpu[1] * 1.0f/i;

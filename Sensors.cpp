@@ -7,6 +7,50 @@ void Sensors::init() {
   compass.init();
   mpu.init();
   barometer.init();
+  
+  // init variables
+  lastUpdateTime = micros();
+  
+  // generate initial rotation matrix
+  float gyro[3];
+  float accel[3];
+  float mag[3];
+  boolean gotValues = false;
+  
+  do {
+    delay(200);
+    mpu.dataInt();
+    
+    if (mpu.readRawValues(gyro, accel) && compass.readRawValues(mag)) {
+      
+      // convert accels and mag to unit vectors
+      matrixUnit(accel);
+      matrixUnit(mag);
+      
+      // we want the positive K vector, so invert gravity
+      accel[0] = -accel[0];
+      accel[1] = -accel[1];
+      accel[2] = -accel[2];
+      
+      // calculate J = K x I
+      float j[3];
+      matrixCross(accel, mag, j);
+      
+      rotation[0][0] = mag[0];
+      rotation[0][1] = mag[1];
+      rotation[0][2] = mag[2];
+      
+      rotation[1][0] = j[0];
+      rotation[1][1] = j[1];
+      rotation[1][2] = j[2];
+      
+      rotation[2][0] = accel[0];
+      rotation[2][1] = accel[1];
+      rotation[2][2] = accel[2];
+    
+      gotValues = true;
+    }  
+  } while (gotValues == false);
 }
 
 //
@@ -24,28 +68,85 @@ void Sensors::update() {
     
     if (mpu.readRawValues(gyro, accel) && compass.readRawValues(mag)) {
       
-      // convert accels and mag to unit vectors
-      matrixUnit(accel);
-      matrixUnit(mag);
+      //
+      // calculate angular change from gyros
+      //
       
-      accel[0] = -accel[0];
-      accel[1] = -accel[1];
-      accel[2] = -accel[2];
+      // figure out how long it's been since our last update
+      unsigned long curTime = micros();
+      float timeDelta = curTime - lastUpdateTime;
+      lastUpdateTime = curTime;
       
-      float j[3];
-      matrixCross(accel, mag, j);
+      // calculate angular change from gyro values
+      for (int i = 0; i < 3; i++) {
+        gyro[i] *= 32768 / 2000 * timeDelta / 1000000.0f * DEG2RAD; 
+      } 
       
-      rotation[0][0] = mag[0];
-      rotation[0][1] = mag[1];
-      rotation[0][2] = mag[2];
+      //
+      // calculate angular change from each of mag and accel
+      //
       
-      rotation[1][0] = j[0];
-      rotation[1][1] = j[1];
-      rotation[1][2] = j[2];
+      // convert mag and accel to unit vectors
+      matrixUnit(mag); 
+      matrixUnit(accel); 
       
-      rotation[2][0] = accel[0];
-      rotation[2][1] = accel[1];
-      rotation[2][2] = accel[2];
+      // invert accel so gravity is correctly pointing down
+      for (int i = 0; i < 3; i++) {
+        accel[i] = -1.0f * accel[i];
+      }
+      
+      // calculate angular change from mag and accel
+      for (int i = 0; i < 3; i++) {
+        mag[i] = mag[i] - rotation[0][i];
+        accel[i] = accel[i] - rotation[2][i];
+      }
+      
+      float magAngle[3];
+      matrixCross(rotation[0], mag, magAngle);
+      float accelAngle[3];
+      matrixCross(rotation[2], accel, accelAngle);
+      
+      //
+      // weight gyros, mag, and accel to calculate final answer
+      //
+      float finalAngle[3];
+      for (int i = 0; i < 3; i++) {
+        finalAngle[i] = gyro[i] * GYRO_WEIGHT + magAngle[i] * MAG_WEIGHT + accelAngle[i] * ACCEL_WEIGHT;  
+      }
+       
+      //
+      // update rotation matrix with new values
+      //
+      
+      // calculate new vectors
+      float I[3], K[3];
+      matrixCross(finalAngle, rotation[0], I);
+      matrixCross(finalAngle, rotation[2], K);
+      
+      // update the rotation matrix
+      for (int i = 0; i < 3; i++) {
+        rotation[0][i] += I[i];
+        rotation[2][i] += K[i];    
+      }
+      
+      //
+      // check that the rotation matrix vectors are still perpendicular and unit length
+      //
+      float error = matrixDot(rotation[0], rotation[2]) / 2;
+      float temp[3] = {rotation[0][0], rotation[0][1], rotation[0][2]};
+      
+      for (int i = 0; i < 3; i++) {
+        rotation[0][i] = rotation[0][i] - error * rotation[2][i];
+        rotation[2][i] = rotation[2][i] - error * temp[i];  
+      }
+      
+      matrixUnit(rotation[0]);
+      matrixUnit(rotation[2]);
+      
+      //
+      // calculate the J vector
+      //
+      matrixCross(rotation[2], rotation[0], rotation[1]);
       
       // calulate updated Euler angles
       sensorData.pitch = asin(rotation[2][0]);
@@ -55,15 +156,12 @@ void Sensors::update() {
       // fixup euler angles
       sensorData.pitch = sensorData.pitch * RAD2DEG;
       
-      if (sensorData.pitch < 0)
-        sensorData.pitch += 360;
-      
       if (sensorData.yaw < 0)
         sensorData.yaw += 360;
         
       if (sensorData.roll < 0)
         sensorData.roll += 360;
-    }
+   }
 }
 
 void Sensors::mpuDataInt() {

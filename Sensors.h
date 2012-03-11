@@ -25,6 +25,7 @@ class Sensors {
      Barometer barometer;
      
      float rotation[3][3];
+     unsigned long lastUpdateTime;
      
      float matrixDot(float* a, float* b);
      void matrixUnit(float* b);
