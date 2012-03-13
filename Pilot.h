@@ -15,12 +15,20 @@ class Pilot {
     unsigned long curUpdateTime;
     unsigned long lastUpdateTime;
     unsigned long dt;  // deltaTime since last loop iteration
-    void updateSpeedControl();
-    void updateHeadingControl();
+
+    void updateThrottleControl();
+    void updateYawControl();
+    void updatePitchControl();
+    void updateRollControl();
+
+    float throttleMaintainCruiseAirSpeed();
+    float rudderMaintainBearing();
+    float elevatorMaintainCruiseAltitude();
+
     float fmap(float var, float min1, float max1, float min2, float max2);  // float version of the map function
     float clipMechanicalAngle(float angle, int mechMax);
-    float maintainCruiseAirSpeed();
-    float maintainCruiseAltitude();
+    float calcMinimumAngle(float curBearing, float targBearing);  // calculates a minimum angle between bearings. The result is always between -179 and 180 degrees
+
 };
 
 #endif

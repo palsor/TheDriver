@@ -14,27 +14,29 @@ void Pilot::init() {
 void Pilot::update() {
   curUpdateTime = millis();
   dt = curUpdateTime - lastUpdateTime;
-  updateSpeedControl();
-  updateHeadingControl();
+  updateThrottleControl();
+  updateYawControl();
+  updatePitchControl();
+  updateRollControl();
   lastUpdateTime = curUpdateTime;
 }
 
-void Pilot::updateSpeedControl() {
+void Pilot::updateThrottleControl() {
   switch(captData.curState) {
                 
-    case STATE_RECOVER:  // T: max, P: RECOVER_PITCH, Y: upWind, R: N/A
+    case STATE_RECOVER:
       pilotData.throttleValue = THROTTLE_MAX;
       break;
 
-    case STATE_TAKEOFF:  // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: hold takeoff heading, R: N/A
-    case STATE_CLIMB:  // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: upWind, R: N/A
-    case STATE_NAVIGATE:  // T: cruiseAirSpeed, P: cruiseAltitude, Y: deltaBearing, R: N/A
-      pilotData.throttleValue = maintainCruiseAirSpeed();
+    case STATE_TAKEOFF:
+    case STATE_CLIMB:
+    case STATE_NAVIGATE:
+      pilotData.throttleValue = throttleMaintainCruiseAirSpeed();
       break;
       
-    case STATE_START:  // T: 0 P/Y/R: Centered
-    case STATE_GLIDE:  // T: 0, P: minAirSpeed, Y: upWind, R: N/A  
-    case STATE_END:  // T: 0, P/Y/R: Centered
+    case STATE_START:
+    case STATE_GLIDE:
+    case STATE_END:
       pilotData.throttleValue = 0;
       break;
       
@@ -44,83 +46,105 @@ void Pilot::updateSpeedControl() {
   }    
 }
 
-void Pilot::updateHeadingControl() {
+void Pilot::updateYawControl() {
   switch(captData.curState) {
     
-    case STATE_START:  // T: 0 P/Y/R: Centered
-    case STATE_END:  // T: 0, P/Y/R: Centered  
-      pilotData.pitchValue = PITCH_CENTER_ANGLE;
-      pilotData.yawValue = YAW_CENTER_ANGLE;
-      pilotData.rollValue = ROLL_CENTER_ANGLE;
-      break;
-      
-//    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: hold takeoff heading, R: N/A
-//    case STATE_TAKEOFF:
-//      pilotData.pitchValue = PITCH_CENTER_ANGLE;
-//      pilotData.yawValue = YAW_CENTER_ANGLE;
-//      pilotData.rollValue = ROLL_CENTER_ANGLE;
-//      break;
-//      
-//    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: upWind, R: N/A
-//    case STATE_CLIMB:
-//      pilotData.pitchValue = PITCH_CENTER_ANGLE;
-//      pilotData.yawValue = YAW_CENTER_ANGLE;
-//      pilotData.rollValue = ROLL_CENTER_ANGLE;
-//      break;
-      
+    case STATE_START:
+    case STATE_END:
     case STATE_TAKEOFF:
     case STATE_CLIMB:
-    // T: cruiseAirSpeed, P: cruiseAltitude, Y: deltaBearing, R: N/A
     case STATE_NAVIGATE:
-      pilotData.pitchValue =  maintainCruiseAltitude();
-//      pilotData.yawValue = YAW_CENTER_ANGLE + clipMechanicalAngle(captData.deltaBearing,YAW_MECHANICAL_MAX) * YAW_SERVO_POLARITY;
-      pilotData.rollValue = ROLL_CENTER_ANGLE;
+      pilotData.yawValue = rudderMaintainBearing();
       break;
       
-    // T: max, P: RECOVER_PITCH, Y: upWind, R: N/A  
     case STATE_RECOVER:
-      pilotData.pitchValue = PITCH_CENTER_ANGLE;
-      pilotData.yawValue = YAW_CENTER_ANGLE;
-      pilotData.rollValue = ROLL_CENTER_ANGLE;
-      break;
-      
-    // T: 0, P: minAirSpeed, Y: upWind, R: N/A
     case STATE_GLIDE:
-      pilotData.pitchValue = PITCH_CENTER_ANGLE;
-      pilotData.yawValue = YAW_CENTER_ANGLE;
-      pilotData.rollValue = ROLL_CENTER_ANGLE;
-      break;
-      
-    // ?  
     default:
+      pilotData.yawValue = YAW_CENTER_ANGLE;
       break;
   }
 }
 
 
 //
-// manage the throttle value to captData.deltaAirSpeed
+// updatePitchControl - updates elevator value for controller
 //
-float Pilot::maintainCruiseAirSpeed() {
-  float maxIncr =  (THROTTLE_MAX - THROTTLE_MIN) * THROTTLE_MAX_RATE / 100 * dt / 1000;
-  
-//  float throttleDelta = fmap(abs(captData.deltaAirSpeed),0,MAX_AIR_SPEED-MIN_AIR_SPEED,THROTTLE_MIN,THROTTLE_MAX);
-//  throttleDelta = (captData.deltaAirSpeed > 0.0) ? throttleDelta : -throttleDelta;
-//  throttleDelta = constrain(throttleDelta, -maxIncr, maxIncr);
+void Pilot::updatePitchControl() {
+  switch(captData.curState) {
+    
+    case STATE_START:
+    case STATE_TAKEOFF:
+    case STATE_CLIMB:
+    case STATE_NAVIGATE:
+      pilotData.pitchValue = elevatorMaintainCruiseAltitude();
+      break;
+      
+    case STATE_RECOVER:
+    case STATE_GLIDE:
+    case STATE_END:
+    default:
+      pilotData.pitchValue = PITCH_CENTER_ANGLE;
+      break;
+  }  
+}
+
+
 //
-//  return(constrain(pilotData.throttleValue+throttleDelta, THROTTLE_MIN, THROTTLE_MAX));
+// updateRollControl - updates aileron value for controller
+//
+void Pilot::updateRollControl() {
+  switch(captData.curState) {
+    
+    case STATE_START:
+    case STATE_TAKEOFF:
+    case STATE_CLIMB:
+    case STATE_NAVIGATE:
+    case STATE_RECOVER:
+    case STATE_GLIDE:
+    case STATE_END:
+    default:
+      pilotData.rollValue = ROLL_CENTER_ANGLE;
+      break;
+  }  
 }
 
 
 //
 // manage the throttle value to captData.deltaAirSpeed
 //
-float Pilot::maintainCruiseAltitude() {
+float Pilot::throttleMaintainCruiseAirSpeed() {
+  float maxIncr =  (THROTTLE_MAX - THROTTLE_MIN) * THROTTLE_MAX_RATE / 100 * dt / 1000;
+  float deltaAirSpeed = CRUISE_AIR_SPEED - sensorData.airspeed[0];
   
-//  float pitchDelta = fmap(abs(captData.deltaAltitude),0,CRUISE_ALTITUDE_THRESHOLD,0,PITCH_MAX);
-//  pitchDelta = (captData.deltaAirSpeed > 0.0) ? pitchDelta : -pitchDelta;
+  float throttleDelta = fmap(abs(deltaAirSpeed),0,MAX_AIR_SPEED-MIN_AIR_SPEED,THROTTLE_MIN,THROTTLE_MAX);
+  throttleDelta = (deltaAirSpeed > 0.0) ? throttleDelta : -throttleDelta;
+  throttleDelta = constrain(throttleDelta, -maxIncr, maxIncr);
+
+  return(constrain(pilotData.throttleValue+throttleDelta, THROTTLE_MIN, THROTTLE_MAX));
+}
+
+
 //
-//  return(constrain(pilotData.pitchValue+pitchDelta, PITCH_CENTER_ANGLE-PITCH_MAX, PITCH_CENTER_ANGLE+PITCH_MAX));
+// rudderMaintainBearing - control the rudder linearly by delta to desired navigation bearing
+//
+float Pilot::rudderMaintainBearing() {
+  float deltaBearing = calcMinimumAngle(navData.estGroundSpeed.direction,navData.curDistance.direction);
+  return(YAW_CENTER_ANGLE + clipMechanicalAngle(deltaBearing,YAW_MECHANICAL_MAX) * YAW_SERVO_POLARITY);
+}
+
+
+//
+// manage the throttle value to captData.deltaAirSpeed
+//
+float Pilot::elevatorMaintainCruiseAltitude() {
+//  float deltaAltitude = CRUISE_ALTITUDE - sensorData.pressAltitude;
+//  float pitchDelta = fmap(abs(deltaAltitude),0,CRUISE_ALTITUDE_THRESHOLD,0,PITCH_MAX);
+//  pitchDelta = (deltaAltitude > 0.0) ? pitchDelta : -pitchDelta;
+//
+//  return(constrain(pitchDelta, PITCH_CENTER_ANGLE-PITCH_MAX, PITCH_CENTER_ANGLE+PITCH_MAX));
+
+  return(sensorData.pitch);
+
 }
 
 
@@ -142,6 +166,21 @@ float Pilot::fmap(float x, float min1, float max1, float min2, float max2) {
   return(m*x + b);
 } 
 
+
+//
+// calculates a minimum angle between bearings. The result is always between -179 and 180 degrees
+//
+float Pilot::calcMinimumAngle(float curBearing, float targBearing) {
+  float deltaBearingAngle = targBearing - curBearing;
+  
+  if(deltaBearingAngle > 180) {
+    deltaBearingAngle -= 360;
+  }
+  if(deltaBearingAngle < -179) {
+    deltaBearingAngle += 360;
+  }
+  return deltaBearingAngle;
+}
 /*
 
   if(PILOT_DEBUG > 0) {

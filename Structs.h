@@ -55,9 +55,6 @@ struct NavData {
   Vector curAirSpeed;  // created from airspeed/magBearing
   Vector curWindSpeed;  // calculated from curGroundSpeed - curAirSpeed
   Vector targetAirSpeed;  // calculated desired heading in plane reference with normalized speed
-//  float deltaAirSpeed;  // speed change fed to Pilot
-//  float deltaAltitude;  // altitude change fed to Pilot
-//  float deltaBearing;  // bearing change fed to Pilot
 } __attribute__((packed));
 
 struct PilotData {
