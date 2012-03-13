@@ -48,10 +48,6 @@ class Navigator {
       void updateDistanceVectors();  // updates curDistance
       boolean advanceWaypoint();  // checks if navigation should advance to the next waypoint (true=arrived/advance false=continue navigation)
     void calcCurWindSpeed();  // updates curWindSpeed
-    void updateState();  // navigation state machine
-      boolean priorityStateChecks();  // checks for error conditions to make priority state transitions independent of current state
-      void transitionState(int newState);  // transitions state and assocaited variables
-    void calcPilotInputs();  // calculates deltas between current and desired airSpeed altitude and bearing
     
     // math
     float calcMinimumAngle(float curBearing, float targBearing);  // calculates a minimum angle between bearings. The result is always between -179 and 180 degrees
