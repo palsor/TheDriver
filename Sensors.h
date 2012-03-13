@@ -10,6 +10,7 @@
 #include "Externs.h"
 #include "Barometer.h"
 #include "Constants.h"
+#include "SingleWire.h"
 
 class Sensors {
   public:
@@ -23,11 +24,16 @@ class Sensors {
      GPS gps;
      MPU6000 mpu;
      Barometer barometer;
+     SingleWire singleWire;
      
      float rotation[3][3];
      unsigned long lastUpdateTime;
      
+     void updateRotationMatrix();
+     void updateAirspeed();
+     
      float matrixDot(float* a, float* b);
+     void matrixRotate(float* bodyVec, float* earthVec);
      void matrixUnit(float* b);
      void matrixCross(float* a, float* b, float* c);
 };

@@ -13,7 +13,7 @@
 #define MPU_SS_PIN 4
 #define GPS_MUX_PIN 7
 #define MINI_SS_PIN 10
-#define AIRSPEED_PIN 0
+#define AIRSPEED_PIN 3
 #define BATTERY_PIN 1
 #define RADIO_MUX_PIN 2
 #define SPI_SLAVE_ACK_PIN 8
@@ -41,6 +41,10 @@
 
 // compass settings
 #define MAG_DECLINATION -6
+
+// analog settings
+#define VREF 5.0
+#define MAX_ADC_RANGE 1024
 
 // DCM controls
 #define GYRO_WEIGHT 0

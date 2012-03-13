@@ -28,7 +28,7 @@ struct SensorData {
   float yaw;            // degrees in earth's frame of reference
   float roll;           // degrees in earth's frame of reference
   float pressAltitude;  // meters
-  float airSpeed[3];    // m/s
+  float airspeed[3];    // m/s
   float battVoltage;    // volts
   bool gpsUpdated;      // 1 = GPS data was updated, 0 = GPS was not updated
   byte radioMuxSelect;  // 1 = radio, 0 = autopilot
