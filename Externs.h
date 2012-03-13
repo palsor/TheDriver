@@ -4,6 +4,7 @@
 #include "Structs.h"
 
 extern SensorData sensorData;
+extern CaptData captData;
 extern NavData navData;
 extern PilotData pilotData;
 extern ErrorData errorData;

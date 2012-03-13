@@ -19,9 +19,6 @@ void Navigator::init() {
   maxValidHoldIdx = INVALID_NAV;
   navData.estLocation.latitude = INVALID_NAV;
   navData.estLocation.latitude = INVALID_NAV;
-  navData.curNavState = NAV_STATE_END;
-  navData.prevNavState = NAV_STATE_END;
-  navData.lastStateTransitionTime = millis();
   minAirSpeed = MIN_AIR_SPEED;
   cruiseAirSpeed = CRUISE_AIR_SPEED;
   estDLatAccum = 0.0;
@@ -55,9 +52,8 @@ void Navigator::beginNavigation() {
     curCourseIdx = 0;
     curHoldIdx = 0;
     updateDistanceVectors();
-    transitionState(NAV_STATE_START);
   } else {  // no valid waypoints added to course
-    transitionState(NAV_STATE_END);
+    delay(100000);
   }
 }
 
@@ -96,8 +92,8 @@ void Navigator::calcCourseDistance() {
 void Navigator::update() {
   curUpdateTime = millis();  // sets timestamp for this run
   manageCourse();  // manages distances/waypoints
-  updateState();  // naviagtion state machine
-  calcPilotInputs();  // updates deltaAirSpeed, deltaAltitude, deltaBearing
+//  updateState();  // naviagtion state machine
+//  calcPilotInputs();  // updates deltaAirSpeed, deltaAltitude, deltaBearing
   navData.lastUpdateTime = curUpdateTime; // saves timestamp for last run
 }
 
@@ -216,147 +212,6 @@ void Navigator::calcCurWindSpeed() {
   if((navData.curGroundSpeed.magnitude > 0.0) && (navData.curWindSpeed.magnitude > 0.0)) {
     subv(&navData.curWindSpeed,navData.curGroundSpeed,navData.curAirSpeed);
   }
-}
-
-
-//
-// navigation state machine
-//
-void Navigator::updateState() {
-  unsigned long curTime = millis();
-  if(priorityStateChecks()) { return; };  // checks for error conditions to make priority state transitions independent of current state  
-  
-  switch(navData.curNavState) {
-    
-    // T: 0 P/Y/R: Centered
-    case NAV_STATE_START:
-      if(curTime-navData.lastStateTransitionTime >= START_DURATION) { transitionState(NAV_STATE_TAKEOFF); };
-      break;
-      
-    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: hold takeoff heading, R: N/A
-    case NAV_STATE_TAKEOFF:
-      if(curTime-navData.lastStateTransitionTime >= TAKEOFF_DURATION) { transitionState(NAV_STATE_CLIMB); };
-      break;
-      
-    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: upWind, R: N/A
-    case NAV_STATE_CLIMB:
-      // if(cruiseAltitude >= sensorData.pressAltitude) { transitionState(NAV_STATE_NAVIGATE); };
-      transitionState(NAV_STATE_NAVIGATE);
-      break;
-      
-    // T: cruiseAirSpeed, P: cruiseAltitude, Y: deltaBearing, R: N/A
-    case NAV_STATE_NAVIGATE:
-      // only priorityStateChecks transition state out of NAV_STATE_NAVIGATE
-      break;
-      
-    // T: max, P: RECOVER_PITCH, Y: upWind, R: N/A  
-    case NAV_STATE_RECOVER:
-      // if(sensorData.airSpeed >= cruiseAirSpeed) { transitionState(NAV_STATE_CLIMB); };
-      transitionState(NAV_STATE_CLIMB);
-      break;
-      
-    // T: 0, P: minAirSpeed, Y: upWind, R: N/A
-    case NAV_STATE_GLIDE:
-      // put in a time check to transition to NAV_STATE_END if no groundSpeed movement for a specified duration
-      break;
-      
-    // T: 0, P/Y/R: Centered  
-    case NAV_STATE_END:
-      break;
-      
-    // ?  
-    default:
-      break;
-  }  
-}
-
-
-//
-// checks for error conditions to make priority state transitions independent of current state
-//
-boolean Navigator::priorityStateChecks() {
-  // if batt check cutoff -> NAV_STATE_GLIDE
-  // if batt check distance -> navSelect=false (next loop iteration switches to hold waypoints)
-//  if(sensorData.airSpeed <= minAirSpeed) {
-//    if(navData.curNavState != NAV_STATE_RECOVER) { transitionState(NAV_STATE_RECOVER); };
-//    return(true);
-//  }
-  return(false);
-}
-
-
-//
-// transitions state and associated variables
-//
-void Navigator::transitionState(int newState) {
-  navData.prevNavState = navData.curNavState;
-  navData.curNavState = newState;
-  navData.lastStateTransitionTime = millis();
-}
-
-
-//
-// calculates deltas between current and desired airSpeed altitude and bearing
-//
-void Navigator::calcPilotInputs() {
-
-  switch(navData.curNavState) {
-    
-    // T: 0 P/Y/R: Centered
-    case NAV_STATE_START:
-      navData.deltaAirSpeed = 0;
-      navData.deltaAltitude = 0;
-      navData.deltaBearing = 0;
-      break;
-      
-//    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: hold takeoff heading, R: N/A
-//    case NAV_STATE_TAKEOFF:
-//      navData.deltaAirSpeed = 0;
-//      navData.deltaAltitude = 0;
-//      navData.deltaBearing = 0;
-//      break;
-//      
-//    // T: cruiseAirSpeed, P: CLIMB_PITCH, Y: upWind, R: N/A
-//    case NAV_STATE_CLIMB:
-//      navData.deltaAirSpeed = 0;
-//      navData.deltaAltitude = 0;
-//      navData.deltaBearing = 0;
-//      break;
-      
-    case NAV_STATE_TAKEOFF:
-    case NAV_STATE_CLIMB:
-    // T: cruiseAirSpeed, P: cruiseAltitude, Y: deltaBearing, R: N/A
-    case NAV_STATE_NAVIGATE:
-//      navData.deltaAirSpeed = CRUISE_AIR_SPEED - sensorData.airSpeed;  // cruiseAirSpeed - sensorData.airSpeed
-      navData.deltaAltitude = CRUISE_ALTITUDE - sensorData.gpsAltitude;  // cruiseAltitude - sensorData.pressAltitude
-      navData.deltaBearing = calcMinimumAngle(navData.estGroundSpeed.direction,navData.curDistance.direction);
-      break;
-      
-    // T: max, P: RECOVER_PITCH, Y: upWind, R: N/A  
-    case NAV_STATE_RECOVER:
-      navData.deltaAirSpeed = 0;
-      navData.deltaAltitude = 0;
-      navData.deltaBearing = 0;
-      break;
-      
-    // T: 0, P: minAirSpeed, Y: upWind, R: N/A
-    case NAV_STATE_GLIDE:
-      navData.deltaAirSpeed = 0;
-      navData.deltaAltitude = 0;
-      navData.deltaBearing = 0;
-      break;
-      
-    // T: 0, P/Y/R: Centered  
-    case NAV_STATE_END:
-      navData.deltaAirSpeed = 0;
-      navData.deltaAltitude = 0;
-      navData.deltaBearing = 0;
-      break;
-      
-    // ?  
-    default:
-      break;
-  } 
 }
 
 

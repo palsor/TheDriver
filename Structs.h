@@ -36,6 +36,12 @@ struct SensorData {
   byte gpsFixType;      // 1 = no fix, 2 = 2D, 3 = 3D
 } __attribute__((packed));
 
+struct CaptData {
+  int curState;  // current state of navigation state machine
+  int prevState;  // previous state of navigation state machine
+  unsigned long lastStateTransitionTime;  // last navigator state transition time
+} __attribute__((packed));
+
 struct NavData {
   int curNavState;  // current state of navigation state machine
   int prevNavState;  // previous state of navigation state machine
@@ -49,9 +55,9 @@ struct NavData {
   Vector curAirSpeed;  // created from airspeed/magBearing
   Vector curWindSpeed;  // calculated from curGroundSpeed - curAirSpeed
   Vector targetAirSpeed;  // calculated desired heading in plane reference with normalized speed
-  float deltaAirSpeed;  // speed change fed to Pilot
-  float deltaAltitude;  // altitude change fed to Pilot
-  float deltaBearing;  // bearing change fed to Pilot
+//  float deltaAirSpeed;  // speed change fed to Pilot
+//  float deltaAltitude;  // altitude change fed to Pilot
+//  float deltaBearing;  // bearing change fed to Pilot
 } __attribute__((packed));
 
 struct PilotData {

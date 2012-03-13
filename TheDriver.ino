@@ -3,6 +3,7 @@
 #include <SPI.h>
 
 #include "Config.h"
+#include "Captain.h"
 #include "Navigator.h"
 #include "Pilot.h"
 #include "Communication.h"
@@ -12,6 +13,7 @@
 
 // globals data structs
 SensorData sensorData;
+CaptData captData;
 NavData navData;
 PilotData pilotData;
 ErrorData errorData;
@@ -19,6 +21,7 @@ DebugData debugData;
 
 // working objects
 Sensors sensors;
+Captain captain;
 Navigator navigator;
 Pilot pilot;
 Communication comms;
@@ -74,6 +77,7 @@ void setup() {
 
 void loop() {
   sensors.update();    // read from the sensors
+  captain.update();    // update state machine
   navigator.update();  // update navigation calculations
   pilot.update();      // update plane controls based on desired navigation
   comms.sendData();    // send data to arduino mini
