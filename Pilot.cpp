@@ -5,7 +5,10 @@ Pilot::Pilot() {
 }
 
 void Pilot::init() {
-
+  pilotData.throttleValue = 0;
+  pilotData.yawValue = YAW_CENTER_ANGLE;
+  pilotData.pitchValue = PITCH_CENTER_ANGLE;
+  pilotData.rollValue = ROLL_CENTER_ANGLE;
 }
 
 //
@@ -143,7 +146,7 @@ float Pilot::elevatorMaintainCruiseAltitude() {
 //
 //  return(constrain(pitchDelta, PITCH_CENTER_ANGLE-PITCH_MAX, PITCH_CENTER_ANGLE+PITCH_MAX));
 
-  return(sensorData.pitch);
+  return(PITCH_CENTER_ANGLE+sensorData.pitch);
 
 }
 

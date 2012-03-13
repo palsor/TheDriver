@@ -13,9 +13,10 @@ class Communication {
     void sendData();
     
   private:
-    void transmit(byte byteToTrans);
+    boolean transmit(byte byteToTrans);
     void transmitStruct(byte id, byte* ptr, int length, boolean delayAfterFirst);
     int structToTrans;
+    byte lastByte;
 };
 
 #endif

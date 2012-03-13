@@ -10,6 +10,10 @@ Communication::Communication() {}
 //
 void Communication::init() {
   int structToTrans = 0;
+  lastByte = 0x00;
+  debugData.spiXmtCount = 0;
+  debugData.spiXmtErrorCount = 0;
+  
 }
 
 //
@@ -35,23 +39,31 @@ void Communication::sendData() {
 
 void Communication::transmitStruct(byte id, byte* ptr, int length, boolean delayAfterFirst) {
   byte checksum = 0;
+  byte byteErrors = 0;
   
   transmit(0xAA);
   transmit(0xAA);
   transmit(id);
   
   for (byte* temp = ptr; temp < ptr + length; temp++) {
-    transmit(*temp);
+    if(transmit(*temp)) { byteErrors++; };
     checksum += *temp;
   }
   
   transmit(0x55);
   transmit(0x55);
   transmit(checksum);
+  
+  if(byteErrors > 0) { debugData.spiXmtErrorCount++; }
+  debugData.spiXmtCount++;
 }
 
-void Communication::transmit(byte byteToTrans) {
+boolean Communication::transmit(byte byteToTrans) {
   int val = digitalRead(SPI_SLAVE_ACK_PIN);
-  byte dump = SPI.transfer(byteToTrans);
-  while(digitalRead(SPI_SLAVE_ACK_PIN) == val) {}  
+  byte slaveByte = SPI.transfer(byteToTrans);
+  byte xorByteToTrans = byteToTrans ^ 0xFF;
+  boolean fail = slaveByte != lastByte;
+  lastByte = xorByteToTrans;
+  while(digitalRead(SPI_SLAVE_ACK_PIN) == val) {}
+  return(fail);
 }

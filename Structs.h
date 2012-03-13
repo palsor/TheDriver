@@ -6,6 +6,7 @@
 #define ERROR_DATA 2
 #define DEBUG_DATA 3
 #define PILOT_DATA 4
+#define CAPT_DATA 5
 
 struct Waypoint {
   float latitude;
@@ -84,6 +85,8 @@ struct DebugData {
   unsigned long navWorstCaseDelayTime;
   unsigned long navWorstCaseRunTime;
   unsigned long averageSerialTime;
+  unsigned long spiXmtCount;
+  unsigned long spiXmtErrorCount;
 } __attribute__((packed));
 
 #endif

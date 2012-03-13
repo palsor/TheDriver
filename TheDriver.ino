@@ -39,6 +39,7 @@ void setup() {
   delay(10);
   
   // init our objects
+  captain.init();
   pilot.init();
   navigator.init();
   sensors.init();
