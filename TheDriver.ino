@@ -27,6 +27,7 @@ Pilot pilot;
 Communication comms;
 
 void setup() {
+  debugData.linkTestSuccess = false;
   
   // init SPI bus - must come before sensor and comms init
   pinMode(MPU_SS_PIN, OUTPUT);
@@ -47,6 +48,14 @@ void setup() {
   
   // setup interrupts - must occur after sensor init
   attachInterrupt(0, mpuDataInt, RISING);
+  
+  if(testLink((unsigned long)5000)) {
+    debugData.linkTestSuccess = true;
+    debugData.spiXmtCount = 0;
+    debugData.spiXmtErrorCount = 0;
+  }
+
+  pilot.init();
   
   // setup course waypoints
 //  navigator.addWaypoint(30.362757,-97.90962);  // 13233 brt sky  
@@ -86,4 +95,32 @@ void loop() {
 
 void mpuDataInt() {
   sensors.mpuDataInt();  
+}
+
+boolean testLink(unsigned long testLength) {
+  debugData.spiXmtCount = 0;
+  debugData.spiXmtErrorCount = 0;
+ 
+  unsigned long startTime = millis();
+  unsigned long curTime = startTime;
+  unsigned long sweepTime = startTime;
+  
+  while(curTime - startTime < testLength) {
+    if(curTime - sweepTime > 10) { 
+      pilot.sweepControls();
+      sweepTime = curTime;
+    }
+    comms.sendData();
+    curTime = millis();
+  }
+
+  float err = (debugData.spiXmtErrorCount-1) / debugData.spiXmtCount;
+  
+//  Serial.print(debugData.spiXmtErrorCount-1,DEC);
+//  Serial.print("/");
+//  Serial.print( debugData.spiXmtCount,DEC);
+//  Serial.print(" ");
+//  Serial.println(err,DEC);
+  
+  return((err < 0.01) && (debugData.spiXmtCount > 3000));
 }

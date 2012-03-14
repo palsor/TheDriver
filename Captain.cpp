@@ -9,10 +9,9 @@ Captain::Captain() {}
 // init
 //
 void Captain::init() {
-  captData.curState = STATE_END;
-  captData.prevState = STATE_END;
+  captData.curState = STATE_INIT;
+  captData.prevState = STATE_INIT;
   captData.lastStateTransitionTime = millis();
-  transitionState(STATE_START);  // qualify start with valid waypoints?
 }
 
 //
@@ -27,9 +26,14 @@ void Captain::update() {
 //
 void Captain::updateState() {
   unsigned long curTime = millis();
-  
+
   switch(captData.curState) {
     
+    // qualified by link test success, valid waypoints, and gps locked in 3D
+    case STATE_INIT:
+      if(debugData.linkTestSuccess && (navData.maxValidCourseIdx != INVALID_NAV) && ((WAIT_FOR_GPS_LOCK==0) || (sensorData.gpsFixType == 3))) { transitionState(STATE_START); };
+      break;
+      
     // T: 0 P/Y/R: Centered
     case STATE_START:
       if(curTime-captData.lastStateTransitionTime >= START_DURATION) { transitionState(STATE_TAKEOFF); };
@@ -91,9 +95,9 @@ boolean Captain::priorityStateChecks() {
 // transitions state and associated variables
 //
 void Captain::transitionState(int newState) {
-//  Serial.print(captData.prevState,DEC);
+//  Serial.print(captData.curState,DEC);
 //  Serial.print("->");
-//  Serial.println(captData.curState,DEC);
+//  Serial.println(newState,DEC);
   captData.prevState = captData.curState;
   captData.curState = newState;
   captData.lastStateTransitionTime = millis();

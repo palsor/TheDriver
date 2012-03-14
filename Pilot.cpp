@@ -9,6 +9,9 @@ void Pilot::init() {
   pilotData.yawValue = YAW_CENTER_ANGLE;
   pilotData.pitchValue = PITCH_CENTER_ANGLE;
   pilotData.rollValue = ROLL_CENTER_ANGLE;
+  yawSweepDir = true;
+  pitchSweepDir = true;
+  rollSweepDir = true;
 }
 
 //
@@ -37,6 +40,7 @@ void Pilot::updateThrottleControl() {
       pilotData.throttleValue = throttleMaintainCruiseAirSpeed();
       break;
       
+    case STATE_INIT:
     case STATE_START:
     case STATE_GLIDE:
     case STATE_END:
@@ -60,6 +64,7 @@ void Pilot::updateYawControl() {
       pilotData.yawValue = rudderMaintainBearing();
       break;
       
+    case STATE_INIT:
     case STATE_RECOVER:
     case STATE_GLIDE:
     default:
@@ -82,6 +87,7 @@ void Pilot::updatePitchControl() {
       pilotData.pitchValue = elevatorMaintainCruiseAltitude();
       break;
       
+    case STATE_INIT:
     case STATE_RECOVER:
     case STATE_GLIDE:
     case STATE_END:
@@ -98,6 +104,7 @@ void Pilot::updatePitchControl() {
 void Pilot::updateRollControl() {
   switch(captData.curState) {
     
+    case STATE_INIT:
     case STATE_START:
     case STATE_TAKEOFF:
     case STATE_CLIMB:
@@ -148,6 +155,42 @@ float Pilot::elevatorMaintainCruiseAltitude() {
 
   return(PITCH_CENTER_ANGLE+sensorData.pitch);
 
+}
+
+
+//
+// sweepControls - diagnostic/test sweep of controls
+//
+void Pilot::sweepControls() {
+  pilotData.throttleValue = 0;
+  
+  if(pilotData.yawValue >= YAW_CENTER_ANGLE+YAW_MECHANICAL_MAX) {
+    yawSweepDir = false;
+  }
+  if(pilotData.yawValue <= YAW_CENTER_ANGLE-YAW_MECHANICAL_MAX) {
+    yawSweepDir = true;
+  }
+  
+  pilotData.yawValue = (yawSweepDir) ? pilotData.yawValue+1 : pilotData.yawValue-1;
+
+  if(pilotData.pitchValue >= PITCH_CENTER_ANGLE+PITCH_MECHANICAL_MAX) {
+    pitchSweepDir = false;
+  }
+  if(pilotData.pitchValue <= PITCH_CENTER_ANGLE-PITCH_MECHANICAL_MAX) {
+    pitchSweepDir = true;
+  }
+  
+  pilotData.pitchValue = (pitchSweepDir) ? pilotData.pitchValue+1 : pilotData.pitchValue-1;
+  
+  if(pilotData.rollValue >= ROLL_CENTER_ANGLE+ROLL_MECHANICAL_MAX) {
+    rollSweepDir = false;
+  }
+  if(pilotData.rollValue <= ROLL_CENTER_ANGLE-ROLL_MECHANICAL_MAX) {
+    rollSweepDir = true;
+  }
+  
+  pilotData.rollValue = (rollSweepDir) ? pilotData.rollValue+1 : pilotData.rollValue-1;
+  
 }
 
 

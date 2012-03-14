@@ -4,12 +4,6 @@
 // program flow
 #define WAIT_FOR_GPS_LOCK 1
 
-// pins
-//#define THROTTLE_SERVO_PIN
-//#define PITCH_SERVO_PIN
-#define YAW_SERVO_PIN 9
-//#define ROLL_SERVO_PIN
-
 #define MPU_SS_PIN 4
 #define GPS_MUX_PIN 7
 #define MINI_SS_PIN 10
@@ -56,6 +50,7 @@
 #define MAX_WAYPOINTS 7
 #define HOLD_PATTERN_WAYPOINTS 8
 #define HOLD_PATTERN_RADIUS 0.050  // km
+#define STATE_INIT -4
 #define STATE_END -3
 #define STATE_GLIDE -2
 #define STATE_RECOVER -1

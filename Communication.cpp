@@ -13,7 +13,6 @@ void Communication::init() {
   lastByte = 0x00;
   debugData.spiXmtCount = 0;
   debugData.spiXmtErrorCount = 0;
-  
 }
 
 //
@@ -39,20 +38,20 @@ void Communication::sendData() {
 
 void Communication::transmitStruct(byte id, byte* ptr, int length, boolean delayAfterFirst) {
   byte checksum = 0;
-  byte byteErrors = 0;
+  int byteErrors = 0;
   
-  transmit(0xAA);
-  transmit(0xAA);
-  transmit(id);
+  if(transmit(0xAA)) { byteErrors++; };
+  if(transmit(0xAA)) { byteErrors++; };
+  if(transmit(id)) { byteErrors++; };
   
   for (byte* temp = ptr; temp < ptr + length; temp++) {
     if(transmit(*temp)) { byteErrors++; };
     checksum += *temp;
   }
   
-  transmit(0x55);
-  transmit(0x55);
-  transmit(checksum);
+  if(transmit(0x55)) { byteErrors++; };
+  if(transmit(0x55)) { byteErrors++; };
+  if(transmit(checksum)) { byteErrors++; };
   
   if(byteErrors > 0) { debugData.spiXmtErrorCount++; }
   debugData.spiXmtCount++;
@@ -67,3 +66,5 @@ boolean Communication::transmit(byte byteToTrans) {
   while(digitalRead(SPI_SLAVE_ACK_PIN) == val) {}
   return(fail);
 }
+
+

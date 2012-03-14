@@ -14,8 +14,8 @@ class Captain {
     
   private:
     void updateState();  // navigation state machine
-      boolean priorityStateChecks();  // checks for error conditions to make priority state transitions independent of current state
-      void transitionState(int newState);  // transitions state and assocaited variables
+    boolean priorityStateChecks();  // checks for error conditions to make priority state transitions independent of current state
+    void transitionState(int newState);  // transitions state and assocaited variables
 
 };
 

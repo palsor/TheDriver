@@ -14,7 +14,7 @@ Navigator::Navigator() {
 void Navigator::init() {
   navSelect = true;  // nav to course
   curCourseIdx = INVALID_NAV;
-  maxValidCourseIdx = INVALID_NAV;
+  navData.maxValidCourseIdx = INVALID_NAV;
   curHoldIdx = INVALID_NAV;
   maxValidHoldIdx = INVALID_NAV;
   navData.estLocation.latitude = INVALID_NAV;
@@ -30,10 +30,10 @@ void Navigator::init() {
 // creates new entry in the course and courseDistance arrays using the supplied lat/lon
 //
 void Navigator::addWaypoint(float lat, float lon) {
-  if(maxValidCourseIdx < MAX_WAYPOINTS - 1) {
-    maxValidCourseIdx += 1;
-    course[maxValidCourseIdx].latitude = lat;
-    course[maxValidCourseIdx].longitude = lon;
+  if(navData.maxValidCourseIdx < MAX_WAYPOINTS - 1) {
+    navData.maxValidCourseIdx += 1;
+    course[navData.maxValidCourseIdx].latitude = lat;
+    course[navData.maxValidCourseIdx].longitude = lon;
   } else {
     errorData.navWaypointError = true;   
   }
@@ -44,17 +44,13 @@ void Navigator::addWaypoint(float lat, float lon) {
 // checks that valid waypoints exist and prepares final course information
 //
 void Navigator::beginNavigation() {
-  if(maxValidCourseIdx != INVALID_NAV) {
-    calcHoldPattern(sensorData.curLocation);
-    calcCourseDistance();
-    navData.estLocation = sensorData.curLocation;  // update estimated location with actual gps fix location
-    updateSpeedVectors();
-    curCourseIdx = 0;
-    curHoldIdx = 0;
-    updateDistanceVectors();
-  } else {  // no valid waypoints added to course
-    delay(100000);
-  }
+  calcHoldPattern(sensorData.curLocation);
+  calcCourseDistance();
+  navData.estLocation = sensorData.curLocation;  // update estimated location with actual gps fix location
+  updateSpeedVectors();
+  curCourseIdx = 0;
+  curHoldIdx = 0;
+  updateDistanceVectors();
 }
 
 
@@ -75,7 +71,7 @@ void Navigator::calcHoldPattern(Waypoint w) {
 // populates courseDistance and calcDistance vectors from waypoints 
 //
 void Navigator::calcCourseDistance() {  
-  for(int i=1;i <=maxValidCourseIdx; i++) {
+  for(int i=1;i <=navData.maxValidCourseIdx; i++) {
     calcDistanceVecFromWaypoints(&courseDistance[i],course[i-1],course[i]);
   }
   
@@ -117,7 +113,7 @@ void Navigator::manageCourse() {
   
   while(advanceWaypoint()) {  // advance to the next waypoint if we've arrived at the current one
       if(navSelect == true) {
-        if(curCourseIdx==maxValidCourseIdx) {  // last course waypoint reached; switch to hold pattern
+        if(curCourseIdx==navData.maxValidCourseIdx) {  // last course waypoint reached; switch to hold pattern
           navSelect = false;
         } else {
           curCourseIdx+=1;
@@ -409,9 +405,9 @@ void Navigator::addv(Vector* v, Vector v1, Vector v2){
 
   if(NAV_DEBUG > 0) {
     Serial.print("MaxValidCourseIdx ");
-    Serial.println(maxValidCourseIdx,DEC);
+    Serial.println(navData.maxValidCourseIdx,DEC);
   
-    for(int i=0;i<=maxValidCourseIdx;i++) {
+    for(int i=0;i<=navData.maxValidCourseIdx;i++) {
       Serial.print("C ");
       Serial.print(i,DEC);
       Serial.print("\t");
@@ -617,7 +613,7 @@ void Navigator::addv(Vector* v, Vector v1, Vector v2){
       Serial.print(" ? ");
       Serial.print(curCourseIdx,DEC);
       Serial.print("/");
-      Serial.print(maxValidCourseIdx,DEC);
+      Serial.print(navData.maxValidCourseIdx,DEC);
       Serial.print(" : ");
       Serial.print(curHoldIdx,DEC);
       Serial.print("/");
@@ -627,7 +623,7 @@ void Navigator::addv(Vector* v, Vector v1, Vector v2){
   
   if(NAV_DEBUG > 0) {
     Serial.print("MaxValidCourseIdx");
-    Serial.println(maxValidCourseIdx,DEC);
+    Serial.println(navData.maxValidCourseIdx,DEC);
   }
   
   if(NAV_DEBUG > 0) {
