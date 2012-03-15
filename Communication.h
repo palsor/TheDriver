@@ -14,7 +14,7 @@ class Communication {
     
   private:
     void transmit(byte byteToTrans);
-    void transmitStruct(byte id, byte* ptr, int length, boolean delayAfterFirst);
+    void transmitStruct(byte id, byte* ptr, int length);
     int structToTrans;
 };
 

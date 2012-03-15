@@ -8,7 +8,18 @@ SingleWire::SingleWire() {}
 // init
 //
 void SingleWire::init() {
-  airspeedOffset = analogRead(AIRSPEED_PIN) * VREF / MAX_ADC_RANGE - 2.5;  
+  airspeedOffset = analogRead(AIRSPEED_PIN) * VREF50 / MAX_ADC_RANGE - 2.5;  
+}
+
+//
+// calibrate - calibrate any sensors that need it
+// 
+void SingleWire::calibrate(int calRound) {
+  // update calRound value, need 1-5 instead of 0-4;
+  calRound++; 
+  
+  // calculate updated airspeedOffset value for this calibration round
+  airspeedOffset = airspeedOffset * (1.0f - 1.0f/calRound) + (analogRead(AIRSPEED_PIN) * VREF50 / MAX_ADC_RANGE - 2.5) * 1.0f/calRound;   
 }
 
 //
@@ -16,21 +27,18 @@ void SingleWire::init() {
 //
 float SingleWire::readAirspeed() {
   // read analog pin
-  float voltage = analogRead(AIRSPEED_PIN) * VREF / MAX_ADC_RANGE - airspeedOffset;   
+  float voltage = analogRead(AIRSPEED_PIN) * VREF50 / MAX_ADC_RANGE - airspeedOffset;   
   // convert voltage to a dynamic pressure in n/m^2
-  float pressure = ((voltage / VREF) - .5) / .2 * 1000;  
+  float pressure = ((voltage / VREF50) - .5) / .2 * 1000;  
   // calculate the airspeed from the dynamic pressure
-  float airspeed = sqrt(pressure * 2 / RHO);
-
-  return airspeed;  
+  return(sqrt(pressure * 2 / RHO));  
 }
 
 //
 // readBattery - read the battery voltage
 //
 float SingleWire::readBattery() {
-  float voltage = analogRead(BATTERY_PIN) * VREF / MAX_ADC_RANGE; 
-  return voltage;
+  return (analogRead(BATTERY_PIN) * VREF50 / MAX_ADC_RANGE); 
 }
 
 // 

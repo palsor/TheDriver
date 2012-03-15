@@ -11,6 +11,7 @@ class SingleWire {
   public:
     SingleWire();
     void init();
+    void calibrate(int calRound);
     float readAirspeed();
     float readBattery();
     bool readFailsafeMux();

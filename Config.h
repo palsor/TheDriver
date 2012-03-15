@@ -39,12 +39,11 @@
 #define COMPASS_DEBUG 0
 #define GPS_DEBUG 0
 
-// compass settings
+// sensor controls
 #define MAG_DECLINATION -6
-
-// analog settings
-#define VREF 5.0
+#define VREF50 5.0
 #define MAX_ADC_RANGE 1024
+#define CALIBRATION_ROUNDS 5
 
 // DCM controls
 #define GYRO_WEIGHT 0

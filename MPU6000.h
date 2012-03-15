@@ -59,13 +59,13 @@
 #define	BIT_I2C_IF_DIS              0x10
 
 #define GYRO_SCALE 16.384
-#define GYRO_CALIBRATION_ROUNDS 5
 
 class MPU6000 {
   public:
     MPU6000();
     void init();
-    boolean readRawValues(float* gyro, float* accel);   
+    boolean readRawValues(float* gyro, float* accel, bool applyOffset);  
+    void calibrate(int calRound); 
     void dataInt();
     
   private:

@@ -28,31 +28,31 @@ void MPU6000::init() {
     gyroCalibrationOffset[1] = 0;
     gyroCalibrationOffset[2] = 0;
     newdata = 0;
+}
+
+//
+// calibrate
+//
+void MPU6000::calibrate(int calRound) {
+  // update calRound value, need 1-5 instead of 0-4;
+  calRound++; 
+  
+  // calibrate gyros
+  float gyroMpu[3];
+  float accelMpu[3];
     
-    // calibrate gyros
-    float gyroMpu[3];
-    float accelMpu[3];
-    float tempOffset[3];
-    
-    for (float i = 1; i <= GYRO_CALIBRATION_ROUNDS; i++) {
-      delay(1000);
-      newdata++;
-      if (readRawValues(gyroMpu, accelMpu)) {
-        tempOffset[0] = tempOffset[0] * (1.0f - 1.0f/i) + gyroMpu[0] * 1.0f/i;
-        tempOffset[1] = tempOffset[1] * (1.0f - 1.0f/i) + gyroMpu[1] * 1.0f/i;
-        tempOffset[2] = tempOffset[2] * (1.0f - 1.0f/i) + gyroMpu[2] * 1.0f/i;
-      }
-    }
-    
-    gyroCalibrationOffset[0] = tempOffset[0];
-    gyroCalibrationOffset[1] = tempOffset[1];
-    gyroCalibrationOffset[2] = tempOffset[2];
+  newdata++;
+  if (readRawValues(gyroMpu, accelMpu, false)) {
+    gyroCalibrationOffset[0] = gyroCalibrationOffset[0] * (1.0f - 1.0f/calRound) + gyroMpu[0] * 1.0f/calRound;
+    gyroCalibrationOffset[1] = gyroCalibrationOffset[1] * (1.0f - 1.0f/calRound) + gyroMpu[1] * 1.0f/calRound;
+    gyroCalibrationOffset[2] = gyroCalibrationOffset[2] * (1.0f - 1.0f/calRound) + gyroMpu[2] * 1.0f/calRound;
+  }   
 }
 
 //
 // readRawValues - reads values from the MPU, scales them, and converts the gryo to degrees
 //
-boolean MPU6000::readRawValues(float* gyro, float* accel) {
+boolean MPU6000::readRawValues(float* gyro, float* accel, bool applyOffset) {
   boolean returnValue = false;
   
   if (newdata) {
@@ -80,16 +80,22 @@ boolean MPU6000::readRawValues(float* gyro, float* accel) {
     // Read GyroX
     byte_H = spiRead(MPUREG_GYRO_XOUT_H);
     byte_L = spiRead(MPUREG_GYRO_XOUT_L);
-    gyro[0] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_X_SIGN - gyroCalibrationOffset[0];
+    gyro[0] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_X_SIGN * GYRO_SCALE;
   
     // Read GyroY
     byte_H = spiRead(MPUREG_GYRO_YOUT_H);
     byte_L = spiRead(MPUREG_GYRO_YOUT_L);
-    gyro[1] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_Y_SIGN - gyroCalibrationOffset[1];
+    gyro[1] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_Y_SIGN * GYRO_SCALE;
     // Read GyroZ
     byte_H = spiRead(MPUREG_GYRO_ZOUT_H);
     byte_L = spiRead(MPUREG_GYRO_ZOUT_L);
-    gyro[2] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_Z_SIGN - gyroCalibrationOffset[2];
+    gyro[2] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_Z_SIGN * GYRO_SCALE;
+    
+    if (applyOffset) {
+      gyro[0] -= gyroCalibrationOffset[0];
+      gyro[1] -= gyroCalibrationOffset[1];
+      gyro[2] -= gyroCalibrationOffset[2];  
+    }
     
     newdata = 0;
     returnValue = true;

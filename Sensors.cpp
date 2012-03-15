@@ -9,6 +9,13 @@ void Sensors::init() {
   barometer.init();
   singleWire.init();
   
+  // calibrate any sensors that need calibration
+  for (int i = 0; i < CALIBRATION_ROUNDS; i++) {
+    delay(1000);
+    mpu.calibrate(i);
+    singleWire.calibrate(i);
+  }
+  
   // init variables
   lastUpdateTime = micros();
   
@@ -22,7 +29,7 @@ void Sensors::init() {
     delay(200);
     mpu.dataInt();
     
-    if (mpu.readRawValues(gyro, accel) && compass.readRawValues(mag)) {
+    if (mpu.readRawValues(gyro, accel, true) && compass.readRawValues(mag)) {
       
       // convert accels and mag to unit vectors
       matrixUnit(accel);
@@ -61,24 +68,14 @@ void Sensors::update() {
   // read rotation independent sensors
   gps.update();
   barometer.update();
+  sensorData.battVoltage = singleWire.readBattery();
     
   // update the rotation matrix as well as pitch/yaw/roll
   updateRotationMatrix();
 
   // read rotation dependent sensors
-  updateAirspeed();  
-}
-
-//
-// readAirspeed - read the differential pressure sensor and calculate airspeed
-//
-void Sensors::updateAirspeed() {  
-  // read airspeed
-  float airspeed = singleWire.readAirspeed();
-  
-  // rotate the airspeed into the earth's frame of reference
-  float airspeedBody[3] = {airspeed, 0, 0};
-  matrixRotate(airspeedBody, sensorData.airspeed);
+  float airspeedBody[3] = {singleWire.readAirspeed(), 0, 0};
+  matrixRotate(airspeedBody, sensorData.airspeed); 
 }
 
 //
@@ -90,7 +87,7 @@ void Sensors::updateRotationMatrix() {
   float accel[3];
   float mag[3];
     
-  if (mpu.readRawValues(gyro, accel) && compass.readRawValues(mag)) {
+  if (mpu.readRawValues(gyro, accel, true) && compass.readRawValues(mag)) {
       
     //
     // calculate angular change from gyros
@@ -103,7 +100,7 @@ void Sensors::updateRotationMatrix() {
       
     // calculate angular change from gyro values
     for (int i = 0; i < 3; i++) {
-      gyro[i] *= 32768 / 2000 * timeDelta / 1000000.0f * DEG2RAD; 
+      gyro[i] *= timeDelta / 1000000.0f * DEG2RAD; 
     } 
       
     //
@@ -235,106 +232,3 @@ void Sensors::matrixRotate(float* bodyVec, float* earthVec) {
     earthVec[i] = rotation[i][0] * bodyVec[0] + rotation[i][1] * bodyVec[1] + rotation[i][2] * bodyVec[2];
   }  
 }
-
-/*
-// 
-// update - read from the MPU, do any necessary calculations, and update data structures
-//
-void MPU6000::update() {
-  
-  // only run our algorithm if there is new data to work from
-  if (newdata) {
-    newdata = 0; // clear out interrupt flag
-    
-    float gyroMpu[3] = {0, 0, 0};
-    float accelMpu[3] = {0, 0, 0};
-    
-    // read the latest data out of the MPU
-    readRawValues(gyroMpu, accelMpu);     
-    
-    unsigned long curTime = micros();
-    float timeOffset = (float)(curTime - lastUpdateTime) / 1000000;
-    lastUpdateTime = curTime;
-    
-    // calculate angles by scaling the raw values for the calibration offset, register definition and time
-    gyroMpu[0] = (gyroMpu[0] - gyroCalibrationOffset[0]) * GYRO_SCALE * timeOffset;
-    gyroMpu[1] = (gyroMpu[1] - gyroCalibrationOffset[1]) * GYRO_SCALE * timeOffset;
-    gyroMpu[2] = (gyroMpu[2] - gyroCalibrationOffset[2]) * GYRO_SCALE * timeOffset;
-    
-    // rotate the angles into the earth's frame of reference and convert to radians
-    float gyroEarth[3];
-    
-    for (int i = 0; i < 3; i++) {
-      gyroEarth[i] = rotation[i][0] * gyroMpu[0] + rotation[i][1] * gyroMpu[1] + rotation[i][2] * gyroMpu[2];
-      gyroEarth[i] *= .0174532925;
-    }
-    
-    float x = gyroEarth[0];
-    float y = gyroEarth[1];
-    float z = gyroEarth[2];
-    
-    // build a rotation matrix from the instantaneous angles
-    float rotationInst[3][3];
-
-    rotationInst[0][0] = cos(y) * cos(z);
-    rotationInst[0][1] = -cos(x) * sin(z) + sin(x) * sin(y) * cos(z);
-    rotationInst[0][2] = sin(x) * sin(z) + cos(x) * sin(y) * cos(z);
-  
-    rotationInst[1][0] = cos(y) * sin(z);
-    rotationInst[1][1] = cos(x) * cos(z) + sin(x) * sin(y) * sin(z);
-    rotationInst[1][2] = -sin(x) * cos(z) + cos(x) * sin(y) * sin(z);
-  
-    rotationInst[2][0] = -sin(y);
-    rotationInst[2][1] = sin(x) * cos(y);
-    rotationInst[2][2] = cos(x) * cos(y);
-    
-    // add the new instantaneous rotation into the existing rotation
-    float temp[3][3];
-    
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 3; j++) {     
-        temp[i][j] = rotationInst[i][0] * rotation[0][j] + rotationInst[i][1] * rotation[1][j] + rotationInst[i][2] * rotation[2][j];
-      }  
-    }
-    
-    // copy our temp data back into our permanent rotation arrays
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 3; j++) {
-        rotation[i][j] = temp[i][j];
-      }    
-    }
-    
-    // calulate updated Euler angles
-    sensorData.pitch = -asin(rotation[2][0]) / 0.0174532925;
-    sensorData.yaw = atan2(rotation[1][0], rotation[0][0]) / 0.0174532925;
-    sensorData.roll = atan2(rotation[2][1], rotation[2][2]) / 0.0174532925;
-    
-    Serial.print(sensorData.pitch);
-    Serial.print(" ");
-    Serial.print(sensorData.yaw);
-    Serial.print(" ");
-    Serial.println(sensorData.roll);
-
-  }
-}
-
-// 
-// from compass
-//
-// calculate heading
-  float tempBearing = atan2(magRaw[1], magRaw[0]);
-  
-  // make heading always between 0 and 2PI
-  if (tempBearing < 0)
-    tempBearing += 2 * 3.14159;
-  
-  // convert heading to degrees and apply magnetic declination  
-  tempBearing = (tempBearing * 180 / 3.14159) + MAG_DECLINATION;
-  
-  if (tempBearing < 0)
-    tempBearing += 360;
-  
-  // copy to data structure
-  sensorData.magBearing = tempBearing;
-  
-  */

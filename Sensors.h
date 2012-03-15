@@ -30,7 +30,6 @@ class Sensors {
      unsigned long lastUpdateTime;
      
      void updateRotationMatrix();
-     void updateAirspeed();
      
      float matrixDot(float* a, float* b);
      void matrixRotate(float* bodyVec, float* earthVec);
