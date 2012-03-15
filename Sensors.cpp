@@ -65,15 +65,23 @@ void Sensors::init() {
 // update - gets latest data from sensors if it is time to read them again
 //
 void Sensors::update() {
-  // read rotation independent sensors
+  // gps
   gps.update();
+  
+  // barometer
   barometer.update();
+  
+  // battery
   sensorData.battVoltage = singleWire.readBattery();
     
-  // update the rotation matrix as well as pitch/yaw/roll
-  updateRotationMatrix();
+  // accel/mag
+  float gyro[3], accel[3], mag[3];
+  if (mpu.readRawValues(gyro, accel, true) && compass.readRawValues(mag)) {
+    updateRotationMatrix(gyro, accel, mag);
+    eulerAngles();
+  }
 
-  // read rotation dependent sensors
+  // airspeed
   float airspeedBody[3] = {singleWire.readAirspeed(), 0, 0};
   matrixRotate(airspeedBody, sensorData.airspeed); 
 }
@@ -81,108 +89,106 @@ void Sensors::update() {
 //
 // updateRotationMatrix - read the accel/mag/gyro, calculate the change in the angle, and update the rotation matrix
 //
-void Sensors::updateRotationMatrix() {
-  // read MPU and compass, then perform DCM algorithm
-  float gyro[3];
-  float accel[3];
-  float mag[3];
+void Sensors::updateRotationMatrix(float* gyro, float* accel, float* mag) {
+      
+  //
+  // calculate angular change from gyros
+  //
+      
+  // figure out how long it's been since our last update
+  unsigned long curTime = micros();
+  float timeDelta = curTime - lastUpdateTime;
+  lastUpdateTime = curTime;
+      
+  // calculate angular change from gyro values
+  for (int i = 0; i < 3; i++) {
+    gyro[i] *= timeDelta / 1000000.0f * DEG2RAD; 
+  } 
     
-  if (mpu.readRawValues(gyro, accel, true) && compass.readRawValues(mag)) {
+  //
+  // calculate angular change from each of mag and accel
+  //
+    
+  // convert mag and accel to unit vectors
+  matrixUnit(mag); 
+  matrixUnit(accel); 
+    
+  // invert accel so gravity is correctly pointing down
+  for (int i = 0; i < 3; i++) {
+    accel[i] = -1.0f * accel[i];
+  }
+    
+  // calculate angular change from mag and accel
+  for (int i = 0; i < 3; i++) {
+    mag[i] = mag[i] - rotation[0][i];       
+    accel[i] = accel[i] - rotation[2][i];
+  }
       
-    //
-    // calculate angular change from gyros
-    //
+  float magAngle[3];
+  matrixCross(rotation[0], mag, magAngle);
+  float accelAngle[3];
+  matrixCross(rotation[2], accel, accelAngle);
+    
+  //
+  // weight gyros, mag, and accel to calculate final answer
+  //
+  float finalAngle[3];
+  for (int i = 0; i < 3; i++) {
+    finalAngle[i] = gyro[i] * GYRO_WEIGHT + magAngle[i] * MAG_WEIGHT + accelAngle[i] * ACCEL_WEIGHT;  
+  }
+     
+  //
+  // update rotation matrix with new values
+  //
+    
+  // calculate new vectors
+  float I[3], K[3];
+  matrixCross(finalAngle, rotation[0], I);
+  matrixCross(finalAngle, rotation[2], K);
+    
+  // update the rotation matrix
+  for (int i = 0; i < 3; i++) {
+    rotation[0][i] += I[i];
+    rotation[2][i] += K[i];    
+  }
+    
+  //
+  // check that the rotation matrix vectors are still perpendicular and unit length
+  //
+  float error = matrixDot(rotation[0], rotation[2]) / 2;
+  float temp[3] = {rotation[0][0], rotation[0][1], rotation[0][2]};
+    
+  for (int i = 0; i < 3; i++) {
+    rotation[0][i] = rotation[0][i] - error * rotation[2][i];
+    rotation[2][i] = rotation[2][i] - error * temp[i];  
+  }
+    
+  matrixUnit(rotation[0]);
+  matrixUnit(rotation[2]);
       
-    // figure out how long it's been since our last update
-    unsigned long curTime = micros();
-    float timeDelta = curTime - lastUpdateTime;
-    lastUpdateTime = curTime;
+  //
+  // calculate the J vector and fill in the last row of the rotation matrix
+  //
+  matrixCross(rotation[2], rotation[0], rotation[1]);
+}
+
+//
+// eulerAngles - calculates new euler angles from the rotation matrix
+//
+void Sensors::eulerAngles() {
+  // calulate updated Euler angles
+  sensorData.pitch = asin(rotation[2][0]);
+  sensorData.yaw = atan2(rotation[1][0]/cos(sensorData.pitch), rotation[0][0]/cos(sensorData.pitch)) * RAD2DEG;
+  sensorData.roll = -atan2(rotation[2][1]/cos(sensorData.pitch), rotation[2][2]/cos(sensorData.pitch)) * RAD2DEG;
+    
+  // fixup euler angles
+  sensorData.pitch = sensorData.pitch * RAD2DEG;
+    
+  if (sensorData.yaw < 0)
+    sensorData.yaw += 360;
       
-    // calculate angular change from gyro values
-    for (int i = 0; i < 3; i++) {
-      gyro[i] *= timeDelta / 1000000.0f * DEG2RAD; 
-    } 
-      
-    //
-    // calculate angular change from each of mag and accel
-    //
-      
-    // convert mag and accel to unit vectors
-    matrixUnit(mag); 
-    matrixUnit(accel); 
-      
-    // invert accel so gravity is correctly pointing down
-    for (int i = 0; i < 3; i++) {
-      accel[i] = -1.0f * accel[i];
-    }
-      
-    // calculate angular change from mag and accel
-    for (int i = 0; i < 3; i++) {
-      mag[i] = mag[i] - rotation[0][i];       
-      accel[i] = accel[i] - rotation[2][i];
-    }
-      
-    float magAngle[3];
-    matrixCross(rotation[0], mag, magAngle);
-    float accelAngle[3];
-    matrixCross(rotation[2], accel, accelAngle);
-      
-    //
-    // weight gyros, mag, and accel to calculate final answer
-    //
-    float finalAngle[3];
-    for (int i = 0; i < 3; i++) {
-      finalAngle[i] = gyro[i] * GYRO_WEIGHT + magAngle[i] * MAG_WEIGHT + accelAngle[i] * ACCEL_WEIGHT;  
-    }
-       
-    //
-    // update rotation matrix with new values
-    //
-      
-    // calculate new vectors
-    float I[3], K[3];
-    matrixCross(finalAngle, rotation[0], I);
-    matrixCross(finalAngle, rotation[2], K);
-      
-    // update the rotation matrix
-    for (int i = 0; i < 3; i++) {
-      rotation[0][i] += I[i];
-      rotation[2][i] += K[i];    
-    }
-      
-    //
-    // check that the rotation matrix vectors are still perpendicular and unit length
-    //
-    float error = matrixDot(rotation[0], rotation[2]) / 2;
-    float temp[3] = {rotation[0][0], rotation[0][1], rotation[0][2]};
-      
-    for (int i = 0; i < 3; i++) {
-      rotation[0][i] = rotation[0][i] - error * rotation[2][i];
-      rotation[2][i] = rotation[2][i] - error * temp[i];  
-    }
-      
-    matrixUnit(rotation[0]);
-    matrixUnit(rotation[2]);
-      
-    //
-    // calculate the J vector
-    //
-    matrixCross(rotation[2], rotation[0], rotation[1]);
-      
-    // calulate updated Euler angles
-    sensorData.pitch = asin(rotation[2][0]);
-    sensorData.yaw = atan2(rotation[1][0]/cos(sensorData.pitch), rotation[0][0]/cos(sensorData.pitch)) * RAD2DEG;
-    sensorData.roll = -atan2(rotation[2][1]/cos(sensorData.pitch), rotation[2][2]/cos(sensorData.pitch)) * RAD2DEG;
-      
-    // fixup euler angles
-    sensorData.pitch = sensorData.pitch * RAD2DEG;
-      
-    if (sensorData.yaw < 0)
-      sensorData.yaw += 360;
-        
-    if (sensorData.roll < 0)
-      sensorData.roll += 360;
-   }    
+  if (sensorData.roll < 0)
+    sensorData.roll += 360;   
 }
 
 void Sensors::mpuDataInt() {

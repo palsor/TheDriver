@@ -29,7 +29,8 @@ class Sensors {
      float rotation[3][3];
      unsigned long lastUpdateTime;
      
-     void updateRotationMatrix();
+     void updateRotationMatrix(float* gyro, float* accel, float* mag);
+     void eulerAngles();
      
      float matrixDot(float* a, float* b);
      void matrixRotate(float* bodyVec, float* earthVec);
