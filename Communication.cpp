@@ -61,10 +61,14 @@ boolean Communication::transmit(byte byteToTrans) {
   int val = digitalRead(SPI_SLAVE_ACK_PIN);
   byte slaveByte = SPI.transfer(byteToTrans);
   byte xorByteToTrans = byteToTrans ^ 0xFF;
+#ifdef WAIT_FOR_SLAVE_ACK
   boolean fail = slaveByte != lastByte;
   lastByte = xorByteToTrans;
   while(digitalRead(SPI_SLAVE_ACK_PIN) == val) {}
   return(fail);
+#else
+  return(false);
+#endif
 }
 
 

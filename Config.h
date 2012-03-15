@@ -3,6 +3,9 @@
 
 // program flow
 #define WAIT_FOR_GPS_LOCK 1
+#define WAIT_FOR_SLAVE_ACK
+#define TEST_LINK_DURATION 5000  // ms
+#define TEST_LINK_ERROR_THRESHOLD 0.01  // 1%
 
 #define MPU_SS_PIN 4
 #define GPS_MUX_PIN 7
