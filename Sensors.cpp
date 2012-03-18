@@ -69,7 +69,11 @@ void Sensors::update() {
   gps.update();
   
   // barometer
-  barometer.update();
+  float temp, pressure;
+  if (barometer.readRawValues(&temp, &pressure)) {
+    // calculate altitude
+    sensorData.pressAltitude = 44330 * (1.0 - pow(pressure / PRESSURE_SEA_LEVEL, 0.1903));
+  }
   
   // battery
   sensorData.battVoltage = singleWire.readBattery();

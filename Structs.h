@@ -70,6 +70,7 @@ struct ErrorData {
 } __attribute__((packed));
 
 struct DebugData {
+  boolean linkTestSuccess;
   unsigned long gpsParseErrors;
   unsigned long gpsSentences;
   unsigned long mainLoopIterations;
@@ -84,6 +85,8 @@ struct DebugData {
   unsigned long navWorstCaseDelayTime;
   unsigned long navWorstCaseRunTime;
   unsigned long averageSerialTime;
+  unsigned long spiXmtCount;
+  unsigned long spiXmtErrorCount;
 } __attribute__((packed));
 
 #endif

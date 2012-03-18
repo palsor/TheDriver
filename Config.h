@@ -4,19 +4,15 @@
 // program flow
 #define WAIT_FOR_GPS_LOCK 1
 
-// pins
-//#define THROTTLE_SERVO_PIN
-//#define PITCH_SERVO_PIN
-#define YAW_SERVO_PIN 9
-//#define ROLL_SERVO_PIN
-
 #define MPU_SS_PIN 4
 #define GPS_MUX_PIN 7
 #define MINI_SS_PIN 10
 #define AIRSPEED_PIN 3
+#define AIRSPEED_PIND A3
 #define BATTERY_PIN 1
 #define RADIO_MUX_PIN 2
 #define SPI_SLAVE_ACK_PIN 8
+#define BAROMETER_PIN 9
 
 // sensor configs
 #define GYRO_X_SIGN 1
@@ -41,8 +37,8 @@
 
 // sensor controls
 #define MAG_DECLINATION -6
-#define VREF50 5.0
-#define MAX_ADC_RANGE 1024
+#define VREF50 5.0f
+#define MAX_ADC_RANGE 1024.0f
 #define CALIBRATION_ROUNDS 5
 
 // DCM controls
