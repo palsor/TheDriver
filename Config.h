@@ -7,10 +7,12 @@
 #define TEST_LINK_DURATION 5000  // ms
 #define TEST_LINK_ERROR_THRESHOLD 0.01  // 1%
 
+// pins
 #define MPU_SS_PIN 4
 #define GPS_MUX_PIN 7
 #define MINI_SS_PIN 10
 #define AIRSPEED_PIN 3
+#define AIRSPEED_PIND A3
 #define BATTERY_PIN 1
 #define RADIO_MUX_PIN 2
 #define SPI_SLAVE_ACK_PIN 8
@@ -36,8 +38,11 @@
 #define COMPASS_DEBUG 0
 #define GPS_DEBUG 0
 
-// compass settings
+// sensor controls
+#define CALIBRATION_ROUNDS 5
 #define MAG_DECLINATION -6
+#define VREF50 5.0f
+#define VREF33 3.3f
 
 // analog settings
 #define VREF 5.0
@@ -87,6 +92,5 @@
 #define YAW_MECHANICAL_MAX 25  // mechanical limits of servo travel
 #define ROLL_CENTER_ANGLE 90  // approximate steering on-center angle for servo
 #define ROLL_MECHANICAL_MAX 25  // mechanical limits of servo travel
-
 
 #endif

@@ -9,10 +9,6 @@ Barometer::Barometer() {}
 // init
 //
 void Barometer::init() {
-  
-  // setup EOC pin
-  pinMode(BAROMETER_PIN, INPUT);
-  
   // init variables
   state = 0;
   
