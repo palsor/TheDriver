@@ -3,16 +3,17 @@
 
 // program flow
 #define WAIT_FOR_GPS_LOCK 1
+#define WAIT_FOR_SLAVE_ACK
+#define TEST_LINK_DURATION 5000  // ms
+#define TEST_LINK_ERROR_THRESHOLD 0.01  // 1%
 
 #define MPU_SS_PIN 4
 #define GPS_MUX_PIN 7
 #define MINI_SS_PIN 10
 #define AIRSPEED_PIN 3
-#define AIRSPEED_PIND A3
 #define BATTERY_PIN 1
 #define RADIO_MUX_PIN 2
 #define SPI_SLAVE_ACK_PIN 8
-#define BAROMETER_PIN 9
 
 // sensor configs
 #define GYRO_X_SIGN 1
@@ -35,11 +36,12 @@
 #define COMPASS_DEBUG 0
 #define GPS_DEBUG 0
 
-// sensor controls
+// compass settings
 #define MAG_DECLINATION -6
-#define VREF50 5.0f
-#define MAX_ADC_RANGE 1024.0f
-#define CALIBRATION_ROUNDS 5
+
+// analog settings
+#define VREF 5.0
+#define MAX_ADC_RANGE 1024
 
 // DCM controls
 #define GYRO_WEIGHT 0
@@ -51,6 +53,7 @@
 #define MAX_WAYPOINTS 7
 #define HOLD_PATTERN_WAYPOINTS 8
 #define HOLD_PATTERN_RADIUS 0.050  // km
+#define STATE_INIT -4
 #define STATE_END -3
 #define STATE_GLIDE -2
 #define STATE_RECOVER -1

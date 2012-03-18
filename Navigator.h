@@ -12,7 +12,7 @@ class Navigator {
     void addWaypoint(float lat, float lon);  // creates new entry in the waypoint and courseDistance arrays using the supplied lat/lon
     void beginNavigation();  // checks for valid waypoints and prepares final course information
     void update();   // update navigation calculations
-    
+  
   private:
   unsigned long curUpdateTime;  // timestamp at the start of the current call to navigator.update()
   float estDLatAccum;  // accumulated
@@ -24,7 +24,6 @@ class Navigator {
   
     // waypoint and navigation vars
     boolean navSelect;  // true=navigate to course waypoints; false=navigate to hold waypoints
-    int maxValidCourseIdx;  // max valid index of waypoints & courseDistances
     int curCourseIdx;  // current index (next destination waypoint and current courseDistance)   
     int maxValidHoldIdx;  // max valid index of waypoints & courseDistances
     int curHoldIdx;  // current index (next destination waypoint and current courseDistance)   

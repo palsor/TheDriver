@@ -27,6 +27,7 @@ Pilot pilot;
 Communication comms;
 
 void setup() {
+  debugData.linkTestSuccess = false;
   
   // init SPI bus - must come before sensor and comms init
   pinMode(MPU_SS_PIN, OUTPUT);
@@ -39,6 +40,7 @@ void setup() {
   delay(10);
   
   // init our objects
+  captain.init();
   pilot.init();
   navigator.init();
   sensors.init();
@@ -46,7 +48,17 @@ void setup() {
   
   // setup interrupts - must occur after sensor init
   attachInterrupt(0, mpuDataInt, RISING);
-  
+ 
+#ifdef WAIT_FOR_SLAVE_ACK
+  if(testLink((unsigned long)TEST_LINK_DURATION)) {
+    debugData.linkTestSuccess = true;
+    debugData.spiXmtCount = 0;
+    debugData.spiXmtErrorCount = 0;
+  }
+
+  pilot.init();
+#endif
+
   // setup course waypoints
 //  navigator.addWaypoint(30.362757,-97.90962);  // 13233 brt sky  
 //  navigator.addWaypoint(30.359468,-97.904153); // Capella & Quinlan
@@ -85,4 +97,25 @@ void loop() {
 
 void mpuDataInt() {
   sensors.mpuDataInt();  
+}
+
+boolean testLink(unsigned long testLength) {
+  debugData.spiXmtCount = 0;
+  debugData.spiXmtErrorCount = 0;
+ 
+  unsigned long startTime = millis();
+  unsigned long curTime = startTime;
+  unsigned long sweepTime = startTime;
+  
+  while(curTime - startTime < testLength) {
+    if(curTime - sweepTime > 10) { 
+      pilot.sweepControls();
+      sweepTime = curTime;
+    }
+    comms.sendData();
+    curTime = millis();
+  }
+
+  float err = (debugData.spiXmtErrorCount-1) / debugData.spiXmtCount;
+  return((err < TEST_LINK_ERROR_THRESHOLD) && (debugData.spiXmtCount > TEST_LINK_DURATION / 2));
 }

@@ -6,6 +6,7 @@
 #define ERROR_DATA 2
 #define DEBUG_DATA 3
 #define PILOT_DATA 4
+#define CAPT_DATA 5
 
 struct Waypoint {
   float latitude;
@@ -43,9 +44,7 @@ struct CaptData {
 } __attribute__((packed));
 
 struct NavData {
-  int curNavState;  // current state of navigation state machine
-  int prevNavState;  // previous state of navigation state machine
-  unsigned long lastStateTransitionTime;  // last navigator state transition time
+  int maxValidCourseIdx;  // max valid index of waypoints & courseDistances    
   unsigned long lastUpdateTime;  // last navigator update loop time
   Waypoint estLocation;  // estimated location updated between GPS fixes
   Vector curDistance;  // calculated distance/bearing to next waypoint
