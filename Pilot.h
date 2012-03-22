@@ -18,17 +18,17 @@ class Pilot {
     unsigned long dt;  // deltaTime since last loop iteration
 
     void updateThrottleControl();
-    void updateYawControl();
-    void updatePitchControl();
-    void updateRollControl();
+    void updateRudderControl();
+    void updateElevatorControl();
+    void updateAileronControl();
 
     float throttleMaintainCruiseAirSpeed();
     float rudderMaintainBearing();
     float elevatorMaintainCruiseAltitude();
     
-    boolean yawSweepDir;
-    boolean pitchSweepDir;
-    boolean rollSweepDir;
+    boolean rudderSweepDir;
+    boolean elevatorSweepDir;
+    boolean aileronSweepDir;
 
     float fmap(float var, float min1, float max1, float min2, float max2);  // float version of the map function
     float clipMechanicalAngle(float angle, int mechMax);

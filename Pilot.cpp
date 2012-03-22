@@ -6,12 +6,12 @@ Pilot::Pilot() {
 
 void Pilot::init() {
   pilotData.throttleValue = 0;
-  pilotData.yawValue = YAW_CENTER_ANGLE;
-  pilotData.pitchValue = PITCH_CENTER_ANGLE;
-  pilotData.rollValue = ROLL_CENTER_ANGLE;
-  yawSweepDir = true;
-  pitchSweepDir = true;
-  rollSweepDir = true;
+  pilotData.rudderAngle = RUDDER_CENTER_ANGLE;
+  pilotData.elevatorAngle = ELEVATOR_CENTER_ANGLE;
+  pilotData.aileronAngle = AILERON_CENTER_ANGLE;
+  rudderSweepDir = true;
+  elevatorSweepDir = true;
+  aileronSweepDir = true;
 }
 
 //
@@ -21,9 +21,9 @@ void Pilot::update() {
   curUpdateTime = millis();
   dt = curUpdateTime - lastUpdateTime;
   updateThrottleControl();
-  updateYawControl();
-  updatePitchControl();
-  updateRollControl();
+  updateRudderControl();
+  updateElevatorControl();
+  updateAileronControl();
   lastUpdateTime = curUpdateTime;
 }
 
@@ -53,7 +53,7 @@ void Pilot::updateThrottleControl() {
   }    
 }
 
-void Pilot::updateYawControl() {
+void Pilot::updateRudderControl() {
   switch(captData.curState) {
     
     case STATE_START:
@@ -61,14 +61,14 @@ void Pilot::updateYawControl() {
     case STATE_TAKEOFF:
     case STATE_CLIMB:
     case STATE_NAVIGATE:
-      pilotData.yawValue = rudderMaintainBearing();
+      pilotData.rudderAngle = rudderMaintainBearing();
       break;
       
     case STATE_INIT:
     case STATE_RECOVER:
     case STATE_GLIDE:
     default:
-      pilotData.yawValue = YAW_CENTER_ANGLE;
+      pilotData.rudderAngle = RUDDER_CENTER_ANGLE;
       break;
   }
 }
@@ -77,14 +77,14 @@ void Pilot::updateYawControl() {
 //
 // updatePitchControl - updates elevator value for controller
 //
-void Pilot::updatePitchControl() {
+void Pilot::updateElevatorControl() {
   switch(captData.curState) {
     
     case STATE_START:
     case STATE_TAKEOFF:
     case STATE_CLIMB:
     case STATE_NAVIGATE:
-      pilotData.pitchValue = elevatorMaintainCruiseAltitude();
+      pilotData.elevatorAngle = elevatorMaintainCruiseAltitude();
       break;
       
     case STATE_INIT:
@@ -92,7 +92,7 @@ void Pilot::updatePitchControl() {
     case STATE_GLIDE:
     case STATE_END:
     default:
-      pilotData.pitchValue = PITCH_CENTER_ANGLE;
+      pilotData.elevatorAngle = ELEVATOR_CENTER_ANGLE;
       break;
   }  
 }
@@ -101,7 +101,7 @@ void Pilot::updatePitchControl() {
 //
 // updateRollControl - updates aileron value for controller
 //
-void Pilot::updateRollControl() {
+void Pilot::updateAileronControl() {
   switch(captData.curState) {
     
     case STATE_INIT:
@@ -113,7 +113,7 @@ void Pilot::updateRollControl() {
     case STATE_GLIDE:
     case STATE_END:
     default:
-      pilotData.rollValue = ROLL_CENTER_ANGLE;
+      pilotData.aileronAngle = AILERON_CENTER_ANGLE;
       break;
   }  
 }
@@ -139,7 +139,7 @@ float Pilot::throttleMaintainCruiseAirSpeed() {
 //
 float Pilot::rudderMaintainBearing() {
   float deltaBearing = calcMinimumAngle(navData.estGroundSpeed.direction,navData.curDistance.direction);
-  return(YAW_CENTER_ANGLE + clipMechanicalAngle(deltaBearing,YAW_MECHANICAL_MAX) * YAW_SERVO_POLARITY);
+  return(RUDDER_CENTER_ANGLE + clipMechanicalAngle(deltaBearing,RUDDER_MECHANICAL_MAX) * RUDDER_SERVO_POLARITY);
 }
 
 
@@ -148,12 +148,12 @@ float Pilot::rudderMaintainBearing() {
 //
 float Pilot::elevatorMaintainCruiseAltitude() {
 //  float deltaAltitude = CRUISE_ALTITUDE - sensorData.pressAltitude;
-//  float pitchDelta = fmap(abs(deltaAltitude),0,CRUISE_ALTITUDE_THRESHOLD,0,PITCH_MAX);
+//  float pitchDelta = fmap(abs(deltaAltitude),0,CRUISE_ALTITUDE_THRESHOLD,0,ELEVATOR_MAX);
 //  pitchDelta = (deltaAltitude > 0.0) ? pitchDelta : -pitchDelta;
 //
-//  return(constrain(pitchDelta, PITCH_CENTER_ANGLE-PITCH_MAX, PITCH_CENTER_ANGLE+PITCH_MAX));
+//  return(constrain(pitchDelta, ELEVATOR_CENTER_ANGLE-ELEVATOR_MAX, ELEVATOR_CENTER_ANGLE+ELEVATOR_MAX));
 
-  return(PITCH_CENTER_ANGLE+sensorData.pitch);
+  return(ELEVATOR_CENTER_ANGLE+sensorData.pitch);
 
 }
 
@@ -164,32 +164,32 @@ float Pilot::elevatorMaintainCruiseAltitude() {
 void Pilot::sweepControls() {
   pilotData.throttleValue = 0;
   
-  if(pilotData.yawValue >= YAW_CENTER_ANGLE+YAW_MECHANICAL_MAX) {
-    yawSweepDir = false;
+  if(pilotData.rudderAngle >= RUDDER_CENTER_ANGLE+RUDDER_MECHANICAL_MAX) {
+    rudderSweepDir = false;
   }
-  if(pilotData.yawValue <= YAW_CENTER_ANGLE-YAW_MECHANICAL_MAX) {
-    yawSweepDir = true;
+  if(pilotData.rudderAngle <= RUDDER_CENTER_ANGLE-RUDDER_MECHANICAL_MAX) {
+    rudderSweepDir = true;
   }
   
-  pilotData.yawValue = (yawSweepDir) ? pilotData.yawValue+1 : pilotData.yawValue-1;
+  pilotData.rudderAngle = (rudderSweepDir) ? pilotData.rudderAngle+1 : pilotData.rudderAngle-1;
 
-  if(pilotData.pitchValue >= PITCH_CENTER_ANGLE+PITCH_MECHANICAL_MAX) {
-    pitchSweepDir = false;
+  if(pilotData.elevatorAngle >= ELEVATOR_CENTER_ANGLE+ELEVATOR_MECHANICAL_MAX) {
+    elevatorSweepDir = false;
   }
-  if(pilotData.pitchValue <= PITCH_CENTER_ANGLE-PITCH_MECHANICAL_MAX) {
-    pitchSweepDir = true;
-  }
-  
-  pilotData.pitchValue = (pitchSweepDir) ? pilotData.pitchValue+1 : pilotData.pitchValue-1;
-  
-  if(pilotData.rollValue >= ROLL_CENTER_ANGLE+ROLL_MECHANICAL_MAX) {
-    rollSweepDir = false;
-  }
-  if(pilotData.rollValue <= ROLL_CENTER_ANGLE-ROLL_MECHANICAL_MAX) {
-    rollSweepDir = true;
+  if(pilotData.elevatorAngle <= ELEVATOR_CENTER_ANGLE-ELEVATOR_MECHANICAL_MAX) {
+    elevatorSweepDir = true;
   }
   
-  pilotData.rollValue = (rollSweepDir) ? pilotData.rollValue+1 : pilotData.rollValue-1;
+  pilotData.elevatorAngle = (elevatorSweepDir) ? pilotData.elevatorAngle+1 : pilotData.elevatorAngle-1;
+  
+  if(pilotData.aileronAngle >= AILERON_CENTER_ANGLE+AILERON_MECHANICAL_MAX) {
+    aileronSweepDir = false;
+  }
+  if(pilotData.aileronAngle <= AILERON_CENTER_ANGLE-AILERON_MECHANICAL_MAX) {
+    aileronSweepDir = true;
+  }
+  
+  pilotData.aileronAngle = (aileronSweepDir) ? pilotData.aileronAngle+1 : pilotData.aileronAngle-1;
   
 }
 
@@ -230,8 +230,8 @@ float Pilot::calcMinimumAngle(float curBearing, float targBearing) {
 /*
 
   if(PILOT_DEBUG > 0) {
-    Serial.print("PIL yawValue ");
-    Serial.println(pilotData.yawValue,DEC); 
+    Serial.print("PIL rudderAngle ");
+    Serial.println(pilotData.rudderAngle,DEC); 
   }
   
   if(PILOT_DEBUG > 0) {
@@ -262,7 +262,7 @@ float Pilot::calcMinimumAngle(float curBearing, float targBearing) {
     Serial.print(" pitchDelta ");
     Serial.print(pitchDelta,DEC);
     
-    Serial.print(" pitchValue ");
-    Serial.println(pilotData.pitchValue,DEC);
+    Serial.print(" elevatorAngle ");
+    Serial.println(pilotData.elevatorAngle,DEC);
   }  
 */

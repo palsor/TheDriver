@@ -58,9 +58,9 @@ struct NavData {
 
 struct PilotData {
   float throttleValue;  // Thr throttle value sent to controller (0-99%)
-  float pitchValue;  // Elv itch value sent to controller (0-360 degrees)
-  float yawValue;  // Rud yaw value sent to controller (0-360 degrees)
-  float rollValue;  // Ail roll value sent to controller (0-360 degrees)
+  float elevatorAngle;  // Elv itch value sent to controller (0-360 degrees)
+  float rudderAngle;  // Rud yaw value sent to controller (0-360 degrees)
+  float aileronAngle;  // Ail roll value sent to controller (0-360 degrees)
 } __attribute__((packed));
 
 struct ErrorData {

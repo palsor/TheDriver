@@ -85,12 +85,12 @@
 #define THROTTLE_MAX 90  // %
 
 // mechanical controls
-#define PITCH_CENTER_ANGLE 90  // approximate steering on-center angle for servo
-#define PITCH_MECHANICAL_MAX 25  // mechanical limits of servo travel
-#define YAW_SERVO_POLARITY -1  // 1 normal polarity; -1 reverse polarity of yaw servo
-#define YAW_CENTER_ANGLE 90  // approximate steering on-center angle for servo
-#define YAW_MECHANICAL_MAX 25  // mechanical limits of servo travel
-#define ROLL_CENTER_ANGLE 90  // approximate steering on-center angle for servo
-#define ROLL_MECHANICAL_MAX 25  // mechanical limits of servo travel
+#define ELEVATOR_CENTER_ANGLE 90  // approximate steering on-center angle for servo
+#define ELEVATOR_MECHANICAL_MAX 25  // mechanical limits of servo travel
+#define RUDDER_SERVO_POLARITY -1  // 1 normal polarity; -1 reverse polarity of yaw servo
+#define RUDDER_CENTER_ANGLE 90  // approximate steering on-center angle for servo
+#define RUDDER_MECHANICAL_MAX 25  // mechanical limits of servo travel
+#define AILERON_CENTER_ANGLE 90  // approximate steering on-center angle for servo
+#define AILERON_MECHANICAL_MAX 25  // mechanical limits of servo travel
 
 #endif
