@@ -26,11 +26,15 @@ void Communication::sendData() {
   
   if (structToTrans == SENSOR_DATA) {
     transmitStruct(SENSOR_DATA, (byte*)&sensorData, sizeof(SensorData));
-    structToTrans++;
+    structToTrans = NAV_DATA;
   }
   else if (structToTrans == NAV_DATA) {
     transmitStruct(NAV_DATA, (byte*)&navData, sizeof(NavData));
-    structToTrans = 0;  
+    structToTrans = CAPT_DATA;  
+  }
+  else if (structToTrans == CAPT_DATA) {
+    transmitStruct(CAPT_DATA, (byte*)&captData, sizeof(CaptData));
+    structToTrans = SENSOR_DATA;  
   }
   
   digitalWrite(MINI_SS_PIN, HIGH);
