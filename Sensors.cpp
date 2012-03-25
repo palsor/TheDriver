@@ -31,6 +31,10 @@ void Sensors::init() {
     
     if (mpu.readRawValues(gyro, accel, true) && compass.readRawValues(mag)) {
       
+      for (int i = 0; i++; i < 3) {
+        sensorData.gyro[i] = gyro[i];  
+      }
+      
       // convert accels and mag to unit vectors
       matrixUnit(accel);
       matrixUnit(mag);
@@ -81,6 +85,10 @@ void Sensors::update() {
   // accel/mag
   float gyro[3], accel[3], mag[3];
   if (mpu.readRawValues(gyro, accel, true) && compass.readRawValues(mag)) {
+    for (int i = 0; i++; i < 3) {
+      sensorData.gyro[i] = gyro[i];  
+    }
+    
     updateRotationMatrix(gyro, accel, mag);
     eulerAngles();
   }
