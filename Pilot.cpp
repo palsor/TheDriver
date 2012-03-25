@@ -5,13 +5,18 @@ Pilot::Pilot() {
 }
 
 void Pilot::init() {
-  pilotData.throttleValue = 0;
+  pilotData.throttleValue = 0.0;
   pilotData.rudderAngle = RUDDER_CENTER_ANGLE;
   pilotData.elevatorAngle = ELEVATOR_CENTER_ANGLE;
   pilotData.aileronAngle = AILERON_CENTER_ANGLE;
   rudderSweepDir = true;
   elevatorSweepDir = true;
   aileronSweepDir = true;
+  speedRange = MAX_AIR_SPEED - MIN_AIR_SPEED;
+  throttleRange = THROTTLE_MAX - THROTTLE_MIN;
+  randomSeed(analogRead(0));
+  curUpdateTime = millis();
+  lastUpdateTime = millis();
 }
 
 //
@@ -124,13 +129,13 @@ void Pilot::updateAileronControl() {
 //
 float Pilot::throttleMaintainCruiseAirSpeed() {
   float maxIncr =  (THROTTLE_MAX - THROTTLE_MIN) * THROTTLE_MAX_RATE / 100 * dt / 1000;
-  float deltaAirSpeed = CRUISE_AIR_SPEED - sensorData.airspeed[0];
+  float deltaAirSpeed = CRUISE_AIR_SPEED - (sensorData.airspeed[0] + sensorData.airspeed[1] + sensorData.airspeed[2]);
+  deltaAirSpeed = constrain(deltaAirSpeed,-speedRange,speedRange);
   
-  float throttleDelta = fmap(abs(deltaAirSpeed),0,MAX_AIR_SPEED-MIN_AIR_SPEED,THROTTLE_MIN,THROTTLE_MAX);
-  throttleDelta = (deltaAirSpeed > 0.0) ? throttleDelta : -throttleDelta;
-  throttleDelta = constrain(throttleDelta, -maxIncr, maxIncr);
+  float throttleDelta = fmap(deltaAirSpeed,-speedRange,speedRange,-throttleRange,throttleRange);
+  pilotData.throttleValue += constrain(throttleDelta,-maxIncr,maxIncr);
 
-  return(constrain(pilotData.throttleValue+throttleDelta, THROTTLE_MIN, THROTTLE_MAX));
+  return(constrain(pilotData.throttleValue,THROTTLE_MIN,THROTTLE_MAX));
 }
 
 
@@ -152,8 +157,22 @@ float Pilot::elevatorMaintainCruiseAltitude() {
 //  pitchDelta = (deltaAltitude > 0.0) ? pitchDelta : -pitchDelta;
 //
 //  return(constrain(pitchDelta, ELEVATOR_CENTER_ANGLE-ELEVATOR_MAX, ELEVATOR_CENTER_ANGLE+ELEVATOR_MAX));
-
-  return(ELEVATOR_CENTER_ANGLE+sensorData.pitch);
+  
+//  // new code - altitude to pitch
+//  float deltaAltitude = sensorData.pressAltitude - CRUISE_ALTITUDE;
+//  deltaAltitude = constrain(deltaAltitude,-CONTROL_ALTITUDE_THRESHOLD,CONTROL_ALTITUDE_THRESHOLD);
+//  float controlPitch = fmap(deltaAltitude,-CONTROL_ALTITUDE_THRESHOLD,CONTROL_ALTITUDE_THRESHOLD,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE);
+//  
+//  // new code - pitch to rate
+//  float deltaPitch = controlPitch - sensorData.pitch;
+//  deltaPitch = constrain(deltaPitch,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE);
+//  float controlPitchRate = fmap(deltaPitch,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE,-MAX_PITCH_RATE,MAX_PITCH_RATE);
+//  
+//  // new code - rate to elevator
+//  float maxIncr =  (THROTTLE_MAX - THROTTLE_MIN) * THROTTLE_MAX_RATE / 100 * dt / 1000;
+  
+  // linear drive pitch to 0
+  return(ELEVATOR_CENTER_ANGLE-constrain(sensorData.pitch,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE));
 
 }
 

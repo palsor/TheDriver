@@ -13,7 +13,7 @@ void GPS::init() {
   
   // configure GPS
   Serial.print(MTK_SET_BINARY);
-  Serial.print(MTK_OUTPUT_4HZ);
+  Serial.print(MTK_OUTPUT_10HZ);
   
   totalBytes = 0;
   bytesRead = 0;

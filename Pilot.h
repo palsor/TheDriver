@@ -16,6 +16,9 @@ class Pilot {
     unsigned long curUpdateTime;
     unsigned long lastUpdateTime;
     unsigned long dt;  // deltaTime since last loop iteration
+    
+    float speedRange;
+    float throttleRange;
 
     void updateThrottleControl();
     void updateRudderControl();

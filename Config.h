@@ -72,17 +72,18 @@
 #define ARRIVED_THRESHOLD 0.02
 
 // dynamics
-#define MIN_AIR_SPEED 2
-#define CRUISE_AIR_SPEED 10  // m/s ~22 mph
-#define MAX_AIR_SPEED 20  // m/s ~44 mph
-#define CRUISE_ALTITUDE 228  // m ~800 ft
-#define CRUISE_ALTITUDE_THRESHOLD 10  // at CRUISE_ALTITUDE+/-CRUISE_ALTITUDE_THRESHOLD pitch control reaches +/- PITCH_MAX 
-#define PITCH_MAX 20  // degrees
-#define CLIMB_PITCH 15  // degrees
-#define RECOVER_PITCH -15  // degrees
-#define THROTTLE_MAX_RATE 25  // %/sec
-#define THROTTLE_MIN 10  // %
-#define THROTTLE_MAX 90  // %
+#define MIN_AIR_SPEED 5.14  // m/s ~11mph
+#define CRUISE_AIR_SPEED 12.86  // m/s ~28.7kts
+#define MAX_AIR_SPEED 22.35  // m/s ~50 mph
+#define CRUISE_ALTITUDE 228.0  // m ~800 ft
+#define CONTROL_ALTITUDE_THRESHOLD 10.0  // at CRUISE_ALTITUDE+/-CRUISE_ALTITUDE_THRESHOLD pitch control reaches +/- PITCH_MAX 
+#define MAX_PITCH_ANGLE 20.0  // degrees
+#define MAX_PITCH_RATE 5.0  // degrees/second
+#define CLIMB_PITCH 15.0  // degrees
+#define RECOVER_PITCH -15.0  // degrees
+#define THROTTLE_MAX_RATE 25.0  // %/sec
+#define THROTTLE_MIN 10.0  // %
+#define THROTTLE_MAX 90.0  // %
 
 // mechanical controls
 #define ELEVATOR_CENTER_ANGLE 90  // approximate steering on-center angle for servo
