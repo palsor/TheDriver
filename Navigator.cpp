@@ -203,7 +203,7 @@ boolean Navigator::advanceWaypoint() {
 // calculates curWindSpeed vector
 //
 void Navigator::calcCurWindSpeed() {
-  if((navData.curGroundSpeed.magnitude > 0.0) && (navData.curWindSpeed.magnitude > 0.0)) {
+  if((navData.curGroundSpeed.magnitude > 0.0) && (navData.curAirSpeed.magnitude > 0.0)) {
     subv(&navData.curWindSpeed,navData.curGroundSpeed,navData.curAirSpeed);
   }
 }

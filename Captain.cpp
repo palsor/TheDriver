@@ -12,7 +12,7 @@ void Captain::init() {
   captData.curState = STATE_END;
   captData.prevState = STATE_END;
   captData.lastStateTransitionTime = millis();
-  transitionState(STATE_START);  // qualify start with valid waypoints?
+  transitionState(STATE_INIT);
 }
 
 //
@@ -29,6 +29,15 @@ void Captain::updateState() {
   unsigned long curTime = millis();
   
   switch(captData.curState) {
+    
+    case STATE_INIT:
+      // add initialization tests here
+      if(debugData.linkTestSuccess == true) { 
+        transitionState(STATE_START);
+      } else {
+        transitionState(STATE_END);
+      }
+      break;
     
     // T: 0 P/Y/R: Centered
     case STATE_START:
@@ -97,5 +106,18 @@ void Captain::transitionState(int newState) {
   captData.prevState = captData.curState;
   captData.curState = newState;
   captData.lastStateTransitionTime = millis();
+  
+  if(captData.curState == STATE_INIT) {
+    digitalWrite(RED_LED, LOW);
+    digitalWrite(BLUE_LED,HIGH);
+  }
+  else if(captData.curState == STATE_END) {
+    digitalWrite(RED_LED, HIGH);
+    digitalWrite(BLUE_LED,LOW);
+  }
+  else {
+    digitalWrite(RED_LED, HIGH);
+    digitalWrite(BLUE_LED,HIGH);
+  }
 }
 

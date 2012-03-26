@@ -16,6 +16,8 @@
 #define BATTERY_PIN 1
 #define RADIO_MUX_PIN 2
 #define SPI_SLAVE_ACK_PIN 8
+#define RED_LED 5
+#define BLUE_LED 6
 
 // sensor configs
 #define GYRO_X_SIGN 1
@@ -75,20 +77,24 @@
 #define MIN_AIR_SPEED 5.14  // m/s ~11mph
 #define CRUISE_AIR_SPEED 12.86  // m/s ~28.7kts
 #define MAX_AIR_SPEED 22.35  // m/s ~50 mph
+
 #define CRUISE_ALTITUDE 228.0  // m ~800 ft
 #define CONTROL_ALTITUDE_THRESHOLD 10.0  // at CRUISE_ALTITUDE+/-CRUISE_ALTITUDE_THRESHOLD pitch control reaches +/- PITCH_MAX 
 #define MAX_PITCH_ANGLE 20.0  // degrees
 #define MAX_PITCH_RATE 5.0  // degrees/second
 #define CLIMB_PITCH 15.0  // degrees
 #define RECOVER_PITCH -15.0  // degrees
+#define MAX_ELEVATOR_RATE 60.0  // degrees/second
+
 #define THROTTLE_MAX_RATE 25.0  // %/sec
 #define THROTTLE_MIN 10.0  // %
 #define THROTTLE_MAX 90.0  // %
 
 // mechanical controls
+#define ELEVATOR_SERVO_POLARITY -1.0  //  1 normal polarity; -1 reverse polarity of elevator servo
 #define ELEVATOR_CENTER_ANGLE 90  // approximate steering on-center angle for servo
 #define ELEVATOR_MECHANICAL_MAX 25  // mechanical limits of servo travel
-#define RUDDER_SERVO_POLARITY -1  // 1 normal polarity; -1 reverse polarity of yaw servo
+#define RUDDER_SERVO_POLARITY -1.0  // 1 normal polarity; -1 reverse polarity of yaw servo
 #define RUDDER_CENTER_ANGLE 90  // approximate steering on-center angle for servo
 #define RUDDER_MECHANICAL_MAX 25  // mechanical limits of servo travel
 #define AILERON_CENTER_ANGLE 90  // approximate steering on-center angle for servo

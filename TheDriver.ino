@@ -29,6 +29,12 @@ Communication comms;
 void setup() {
   debugData.linkTestSuccess = false;
   
+  // init feedback LED pins
+  pinMode(RED_LED,OUTPUT);
+  digitalWrite(RED_LED, LOW);
+  pinMode(BLUE_LED,OUTPUT);
+  digitalWrite(BLUE_LED,HIGH);
+  
   // init SPI bus - must come before sensor and comms init
   pinMode(MPU_SS_PIN, OUTPUT);
   digitalWrite(MPU_SS_PIN, HIGH);
