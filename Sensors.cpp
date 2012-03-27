@@ -44,6 +44,13 @@ void Sensors::init() {
       accel[1] = -accel[1];
       accel[2] = -accel[2];
       
+      // adjust mag to account for downward component of earth's magnetic field
+      float scalar = matrixDot(mag, accel);
+      for (int i = 0; i < 3; i++) {
+        mag[i] -= scalar * accel[i];  
+      }
+      matrixUnit(mag);
+      
       // calculate K x I = J
       float j[3];
       matrixCross(accel, mag, j);
@@ -129,6 +136,13 @@ void Sensors::updateRotationMatrix(float* gyro, float* accel, float* mag) {
   for (int i = 0; i < 3; i++) {
     accel[i] = -1.0f * accel[i];
   }
+  
+  // adjust mag to account for downward component of earth's magnetic field
+  float scalar = matrixDot(mag, accel);
+  for (int i = 0; i < 3; i++) {
+    mag[i] -= scalar * accel[i];  
+  }
+  matrixUnit(mag);
     
   // calculate angular change from mag and accel
   for (int i = 0; i < 3; i++) {

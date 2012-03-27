@@ -20,9 +20,9 @@
 #define BLUE_LED 6
 
 // sensor configs
-#define GYRO_X_SIGN 1
+#define GYRO_X_SIGN -1
 #define GYRO_Y_SIGN 1
-#define GYRO_Z_SIGN 1
+#define GYRO_Z_SIGN -1
 #define ACCEL_X_SIGN 1
 #define ACCEL_Y_SIGN -1
 #define ACCEL_Z_SIGN -1
