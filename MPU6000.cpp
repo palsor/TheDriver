@@ -80,16 +80,16 @@ boolean MPU6000::readRawValues(float* gyro, float* accel, bool applyOffset) {
     // Read GyroX
     byte_H = spiRead(MPUREG_GYRO_XOUT_H);
     byte_L = spiRead(MPUREG_GYRO_XOUT_L);
-    gyro[0] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_X_SIGN * GYRO_SCALE;
+    gyro[0] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_X_SIGN / GYRO_SCALE;
   
     // Read GyroY
     byte_H = spiRead(MPUREG_GYRO_YOUT_H);
     byte_L = spiRead(MPUREG_GYRO_YOUT_L);
-    gyro[1] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_Y_SIGN * GYRO_SCALE;
+    gyro[1] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_Y_SIGN / GYRO_SCALE;
     // Read GyroZ
     byte_H = spiRead(MPUREG_GYRO_ZOUT_H);
     byte_L = spiRead(MPUREG_GYRO_ZOUT_L);
-    gyro[2] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_Z_SIGN * GYRO_SCALE;
+    gyro[2] = ((float)(((int)byte_H<<8) | byte_L)) * GYRO_Z_SIGN / GYRO_SCALE;
     
     if (applyOffset) {
       gyro[0] -= gyroCalibrationOffset[0];
