@@ -51,9 +51,9 @@
 #define MAX_ADC_RANGE 1024
 
 // DCM controls
-#define GYRO_WEIGHT 0
-#define MAG_WEIGHT 0.5
-#define ACCEL_WEIGHT 0.5
+#define GYRO_WEIGHT 0.5
+#define MAG_WEIGHT 0.25
+#define ACCEL_WEIGHT 0.25
 
 // Navigator controls
 #define EARTH_RADIUS 6371  // km avg earth radius
