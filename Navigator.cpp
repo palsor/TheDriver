@@ -133,8 +133,8 @@ void Navigator::manageCourse() {
 // updates current ground/air speeds
 //
 void Navigator::updateSpeedVectors() {
-  navData.curAirSpeed.direction = sensorData.yaw;
-  navData.curAirSpeed.magnitude = sqrt(sensorData.airspeed[0] * sensorData.airspeed[0] + sensorData.airspeed[1] * sensorData.airspeed[1]);
+  navData.curAirSpeed.direction = sensorData.yaw_e;
+  navData.curAirSpeed.magnitude = sqrt(sensorData.airspeed_e[0] * sensorData.airspeed_e[0] + sensorData.airspeed_e[1] * sensorData.airspeed_e[1]);
 
   navData.curGroundSpeed.direction = sensorData.gpsBearing;  
   navData.curGroundSpeed.magnitude = sensorData.gpsSpeed;

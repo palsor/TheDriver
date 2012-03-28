@@ -125,11 +125,11 @@ void Pilot::updateAileronControl() {
 
 
 //
-// manage the throttle value to captData.deltaAirSpeed
+// manage the throttle value to air speed
 //
 float Pilot::throttleMaintainCruiseAirSpeed() {
   float maxIncr =  (THROTTLE_MAX - THROTTLE_MIN) * THROTTLE_MAX_RATE / 100 * dt / 1000;
-  float deltaAirSpeed = CRUISE_AIR_SPEED - (sensorData.airspeed[0] + sensorData.airspeed[1] + sensorData.airspeed[2]);
+  float deltaAirSpeed = CRUISE_AIR_SPEED - sqrt(sensorData.airspeed_e[0] * sensorData.airspeed_e[0] + sensorData.airspeed_e[1] * sensorData.airspeed_e[1] + sensorData.airspeed_e[2] * sensorData.airspeed_e[2]);
   deltaAirSpeed = constrain(deltaAirSpeed,-speedRange,speedRange);
   
   float throttleDelta = fmap(deltaAirSpeed,-speedRange,speedRange,-throttleRange,throttleRange);
@@ -149,30 +149,31 @@ float Pilot::rudderMaintainBearing() {
 
 
 //
-// manage the throttle value to captData.deltaAirSpeed
+// manage the throttle value to maintain altitude
 //
 float Pilot::elevatorMaintainCruiseAltitude() {
-//  float deltaAltitude = CRUISE_ALTITUDE - sensorData.pressAltitude;
-//  float pitchDelta = fmap(abs(deltaAltitude),0,CRUISE_ALTITUDE_THRESHOLD,0,ELEVATOR_MAX);
-//  pitchDelta = (deltaAltitude > 0.0) ? pitchDelta : -pitchDelta;
-//
-//  return(constrain(pitchDelta, ELEVATOR_CENTER_ANGLE-ELEVATOR_MAX, ELEVATOR_CENTER_ANGLE+ELEVATOR_MAX));
+
+  // altitude to pitch
+  float deltaAltitude = sensorData.pressAltitude - CRUISE_ALTITUDE;
+  deltaAltitude = constrain(deltaAltitude,-CONTROL_ALTITUDE_THRESHOLD,CONTROL_ALTITUDE_THRESHOLD);
+  float controlPitch = fmap(deltaAltitude,-CONTROL_ALTITUDE_THRESHOLD,CONTROL_ALTITUDE_THRESHOLD,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE);
   
-//  // new code - altitude to pitch
-//  float deltaAltitude = sensorData.pressAltitude - CRUISE_ALTITUDE;
-//  deltaAltitude = constrain(deltaAltitude,-CONTROL_ALTITUDE_THRESHOLD,CONTROL_ALTITUDE_THRESHOLD);
-//  float controlPitch = fmap(deltaAltitude,-CONTROL_ALTITUDE_THRESHOLD,CONTROL_ALTITUDE_THRESHOLD,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE);
-//  
-//  // new code - pitch to rate
-//  float deltaPitch = controlPitch - sensorData.pitch;
-//  deltaPitch = constrain(deltaPitch,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE);
-//  float controlPitchRate = fmap(deltaPitch,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE,-MAX_PITCH_RATE,MAX_PITCH_RATE);
-//  
-//  // new code - rate to elevator
-//  float maxIncr =  (THROTTLE_MAX - THROTTLE_MIN) * THROTTLE_MAX_RATE / 100 * dt / 1000;
+  // pitch to rate
+  float deltaPitch = controlPitch - sensorData.pitch_e;
+  deltaPitch = constrain(deltaPitch,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE);
+  float controlPitchRate = fmap(deltaPitch,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE,-MAX_PITCH_RATE,MAX_PITCH_RATE);
+  
+  // rate to elevator
+  float maxIncr =  MAX_ELEVATOR_RATE * dt / 1000;
+  float deltaPitchRate = controlPitchRate - sensorData.gyro_b[1];
+  deltaPitchRate = constrain(deltaPitchRate,-MAX_PITCH_RATE,MAX_PITCH_RATE);
+  float deltaElevatorAngle = fmap(deltaPitchRate,-MAX_PITCH_RATE,MAX_PITCH_RATE,-MAX_ELEVATOR_RATE,MAX_ELEVATOR_RATE);
+  deltaElevatorAngle = constrain(deltaElevatorAngle,-maxIncr,maxIncr);
+  
+  return(pilotData.elevatorAngle+=(deltaElevatorAngle * ELEVATOR_SERVO_POLARITY));
   
   // linear drive pitch to 0
-  return(ELEVATOR_CENTER_ANGLE-constrain(sensorData.pitch,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE));
+  //return(ELEVATOR_CENTER_ANGLE-constrain(sensorData.pitch_e,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE));
 
 }
 
