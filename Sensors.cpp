@@ -32,7 +32,7 @@ void Sensors::init() {
     if (mpu.readRawValues(gyro, accel, true) && compass.readRawValues(mag)) {
       
       for (int i = 0; i++; i < 3) {
-        sensorData.gyro[i] = gyro[i];  
+        sensorData.gyro_b[i] = gyro[i];  
       }
       
       // convert accels and mag to unit vectors
@@ -93,7 +93,7 @@ void Sensors::update() {
   float gyro[3], accel[3], mag[3];
   if (mpu.readRawValues(gyro, accel, true) && compass.readRawValues(mag)) {
     for (int i = 0; i++; i < 3) {
-      sensorData.gyro[i] = gyro[i];  
+      sensorData.gyro_b[i] = gyro[i];  
     }
     
     updateRotationMatrix(gyro, accel, mag);
@@ -102,7 +102,7 @@ void Sensors::update() {
 
   // airspeed
   float airspeedBody[3] = {singleWire.readAirspeed(), 0, 0};
-  matrixRotate(airspeedBody, sensorData.airspeed); 
+  matrixRotate(airspeedBody, sensorData.airspeed_e); 
 }
 
 //
@@ -203,18 +203,18 @@ void Sensors::updateRotationMatrix(float* gyro, float* accel, float* mag) {
 //
 void Sensors::eulerAngles() {
   // calulate updated Euler angles
-  sensorData.pitch = asin(rotation[2][0]);
-  sensorData.yaw = atan2(rotation[1][0]/cos(sensorData.pitch), rotation[0][0]/cos(sensorData.pitch)) * RAD2DEG;
-  sensorData.roll = -atan2(rotation[2][1]/cos(sensorData.pitch), rotation[2][2]/cos(sensorData.pitch)) * RAD2DEG;
+  sensorData.pitch_e = asin(rotation[2][0]);
+  sensorData.yaw_e = atan2(rotation[1][0]/cos(sensorData.pitch_e), rotation[0][0]/cos(sensorData.pitch_e)) * RAD2DEG;
+  sensorData.roll_e = -atan2(rotation[2][1]/cos(sensorData.pitch_e), rotation[2][2]/cos(sensorData.pitch_e)) * RAD2DEG;
     
   // fixup euler angles
-  sensorData.pitch = sensorData.pitch * RAD2DEG;
+  sensorData.pitch_e = sensorData.pitch_e * RAD2DEG;
     
-  if (sensorData.yaw < 0)
-    sensorData.yaw += 360;
+  if (sensorData.yaw_e < 0)
+    sensorData.yaw_e += 360;
       
-  if (sensorData.roll < 0)
-    sensorData.roll += 360;   
+  if (sensorData.roll_e < 0)
+    sensorData.roll_e += 360;   
 }
 
 void Sensors::mpuDataInt() {
