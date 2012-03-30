@@ -78,13 +78,15 @@
 #define CRUISE_AIR_SPEED 12.86  // m/s ~28.7kts
 #define MAX_AIR_SPEED 22.35  // m/s ~50 mph
 
+#define CONTROL_BEARING_THRESHOLD 10.0  // degrees
+#define MAX_YAW_RATE 10.0  // degrees/sec
+
 #define CRUISE_ALTITUDE 228.0  // m ~800 ft
 #define CONTROL_ALTITUDE_THRESHOLD 10.0  // at CRUISE_ALTITUDE+/-CRUISE_ALTITUDE_THRESHOLD pitch control reaches +/- PITCH_MAX 
 #define MAX_PITCH_ANGLE 20.0  // degrees
 #define MAX_PITCH_RATE 5.0  // degrees/second
-#define CLIMB_PITCH 15.0  // degrees
-#define RECOVER_PITCH -15.0  // degrees
-#define MAX_ELEVATOR_RATE 60.0  // degrees/second
+#define ADAPTIVE_PITCH_MAX_INCREMENT 1.0  // degrees
+#define ADAPTIVE_PITCH_TIMEOUT 300000  // ms 5 minutes
 
 #define THROTTLE_MAX_RATE 25.0  // %/sec
 #define THROTTLE_MIN 10.0  // %
@@ -92,9 +94,11 @@
 
 // mechanical controls
 #define ELEVATOR_SERVO_POLARITY -1.0  //  1 normal polarity; -1 reverse polarity of elevator servo
+#define MAX_ELEVATOR_SERVO_RATE 400.0  // max degrees/second of servo
 #define ELEVATOR_CENTER_ANGLE 90  // approximate steering on-center angle for servo
 #define ELEVATOR_MECHANICAL_MAX 25  // mechanical limits of servo travel
 #define RUDDER_SERVO_POLARITY -1.0  // 1 normal polarity; -1 reverse polarity of yaw servo
+#define MAX_RUDDER_SERVO_RATE 400.0  // max degrees/second of servo
 #define RUDDER_CENTER_ANGLE 90  // approximate steering on-center angle for servo
 #define RUDDER_MECHANICAL_MAX 25  // mechanical limits of servo travel
 #define AILERON_CENTER_ANGLE 90  // approximate steering on-center angle for servo
