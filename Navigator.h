@@ -40,12 +40,11 @@ class Navigator {
       void calcCourseDistance();  // populates courseDistance vectors from course waypoints
     
     // update
-    void manageCourse();  // manages distances and next waypoint
-      void updateSpeedVectors();  // updates ground/air peed
-      void resetEstLocation();  // resets estLocation with curLocation
-      void updateEstLocation();  // updates navData.estLocation
-      void updateDistanceVectors();  // updates curDistance
-      boolean advanceWaypoint();  // checks if navigation should advance to the next waypoint (true=arrived/advance false=continue navigation)
+    void updateSpeedVectors();  // updates ground/air peed
+    void resetEstLocation();  // resets estLocation with curLocation
+    void updateEstLocation();  // updates navData.estLocation
+    void updateDistanceVectors();  // updates curDistance
+    boolean advanceWaypoint();  // checks if navigation should advance to the next waypoint (true=arrived/advance false=continue navigation)
     void calcCurWindSpeed();  // updates curWindSpeed
     
     // math
