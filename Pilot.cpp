@@ -156,7 +156,7 @@ float Pilot::rudderMaintainBearing() {
   float controlYawRate_b = fmap(deltaBearing_translated,-CONTROL_BEARING_THRESHOLD,CONTROL_BEARING_THRESHOLD,-MAX_YAW_RATE,MAX_YAW_RATE);
   
   // rate to rudder
-  float maxIncr_b =  MAX_RUDDER_SERVO_RATE * dt / 1000;
+  float maxIncr_b =  MAX_RUDDER_SERVO_RATE * dt / 1000.0;
  
   float deltaYawRate_b = controlYawRate_b - sensorData.gyro_b[2];  // gyro_b[2] is rate about the z axis (yaw)
   deltaYawRate_b = constrain(deltaYawRate_b,-MAX_YAW_RATE,MAX_YAW_RATE);
