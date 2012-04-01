@@ -74,8 +74,8 @@
 #define ARRIVED_THRESHOLD 0.02
 
 // dynamics
-#define MIN_AIR_SPEED 5.14  // m/s ~11mph
-#define CRUISE_AIR_SPEED 12.86  // m/s ~28.7kts
+#define MIN_AIR_SPEED 5.14  // m/s ~11 mph
+#define CRUISE_AIR_SPEED 12.86  // m/s ~28.7 mph
 #define MAX_AIR_SPEED 22.35  // m/s ~50 mph
 
 #define CONTROL_BEARING_THRESHOLD 10.0  // degrees

@@ -51,7 +51,7 @@ void Pilot::updateThrottleControl() {
     case STATE_START:
     case STATE_GLIDE:
     case STATE_END:
-      pilotData.throttleValue = 0;
+      pilotData.throttleValue = 0.0;
       break;
       
     // ?  
@@ -130,7 +130,7 @@ void Pilot::updateAileronControl() {
 // manage the throttle value to air speed
 //
 float Pilot::throttleMaintainCruiseAirSpeed() {
-  float maxIncr =  (THROTTLE_MAX - THROTTLE_MIN) * THROTTLE_MAX_RATE / 100 * dt / 1000;
+  float maxIncr =  (THROTTLE_MAX - THROTTLE_MIN) * THROTTLE_MAX_RATE / 100.0 * dt / 1000.0;
   
   float deltaAirSpeed = CRUISE_AIR_SPEED - sqrt(sensorData.airspeed_e[0] * sensorData.airspeed_e[0] + sensorData.airspeed_e[1] * sensorData.airspeed_e[1] + sensorData.airspeed_e[2] * sensorData.airspeed_e[2]);
   deltaAirSpeed = constrain(deltaAirSpeed,-speedRange,speedRange);
@@ -187,7 +187,7 @@ float Pilot::elevatorMaintainCruiseAltitude() {
   float controlPitchRate_b = fmap(deltaPitch_translated,-MAX_PITCH_ANGLE,MAX_PITCH_ANGLE,-MAX_PITCH_RATE,MAX_PITCH_RATE);
   
   // rate to elevator
-  float maxIncr_b =  MAX_ELEVATOR_SERVO_RATE * dt / 1000;
+  float maxIncr_b =  MAX_ELEVATOR_SERVO_RATE * dt / 1000.0;
  
   float deltaPitchRate_b = controlPitchRate_b - sensorData.gyro_b[1];  // gyro_b[1] is rate about the y axis (pitch)
   deltaPitchRate_b = constrain(deltaPitchRate_b,-MAX_PITCH_RATE,MAX_PITCH_RATE);
@@ -206,9 +206,9 @@ float Pilot::elevatorMaintainCruiseAltitude() {
 // resetVasIntegrator - reset values and time for vas integrator
 //
 void Pilot::resetVasIntegrator() {
-  vasAltAccum = 0;
+  vasAltAccum = 0.0;
   startPalt = sensorData.pressAltitude;
-  dtAccum = 0;
+  dtAccum = 0.0;
 }
 
 
@@ -329,11 +329,11 @@ float Pilot::fmap(float x, float min1, float max1, float min2, float max2) {
 float Pilot::calcMinimumAngle(float curBearing, float targBearing) {
   float deltaBearingAngle = targBearing - curBearing;
   
-  if(deltaBearingAngle > 180) {
-    deltaBearingAngle -= 360;
+  if(deltaBearingAngle > 180.0) {
+    deltaBearingAngle -= 360.0;
   }
-  if(deltaBearingAngle < -179) {
-    deltaBearingAngle += 360;
+  if(deltaBearingAngle < -179.0) {
+    deltaBearingAngle += 360.0;
   }
   return deltaBearingAngle;
 }
