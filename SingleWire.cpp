@@ -29,8 +29,14 @@ float SingleWire::readAirspeed() {
   float voltage = (float)analogRead(AIRSPEED_PIN) * VREF50 / MAX_ADC_RANGE - airspeedOffset; 
   // convert voltage to a dynamic pressure in n/m^2
   float pressure = ((voltage / VREF50) - .5) / .2 * 1000.0;  
+  
   // calculate the airspeed from the dynamic pressure
-  return(sqrt(pressure * 2 / RHO));  
+  
+  // if pressure is less than 0, the sqrt function won't work, this shouldn't happen in normal, but potentially happens on the ground
+  if (pressure < 0)
+    pressure = 0;
+  
+  return(sqrt(pressure * 2.0 / RHO));
 }
 
 //

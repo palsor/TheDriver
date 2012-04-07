@@ -3,7 +3,7 @@
 
 // program flow
 #define WAIT_FOR_GPS_LOCK 1
-#define WAIT_FOR_SLAVE_ACK
+//#define WAIT_FOR_SLAVE_ACK
 #define TEST_LINK_DURATION 5000  // ms
 #define TEST_LINK_ERROR_THRESHOLD 0.01  // 1%
 
@@ -79,12 +79,13 @@
 #define MAX_AIR_SPEED 22.35  // m/s ~50 mph
 
 #define CONTROL_BEARING_THRESHOLD 10.0  // degrees
-#define MAX_YAW_RATE 10.0  // degrees/sec
+#define MAX_YAW_RATE 30.0  // degrees/sec
 
-#define CRUISE_ALTITUDE 228.0  // m ~800 ft
+#define CRUISE_ALTITUDE 350.0  // m ~800 ft
 #define CONTROL_ALTITUDE_THRESHOLD 10.0  // at CRUISE_ALTITUDE+/-CRUISE_ALTITUDE_THRESHOLD pitch control reaches +/- PITCH_MAX 
 #define MAX_PITCH_ANGLE 20.0  // degrees
 #define MAX_PITCH_RATE 5.0  // degrees/second
+#define ADAPTIVE_PITCH_LIMIT 10.0  // degrees limit of adaptive pitch
 #define ADAPTIVE_PITCH_MAX_INCREMENT 1.0  // degrees
 #define ADAPTIVE_PITCH_TIMEOUT 300000  // ms 5 minutes
 

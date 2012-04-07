@@ -32,13 +32,17 @@ void Captain::updateState() {
     
     case STATE_INIT:
       // add initialization tests here
+#ifdef WAIT_FOR_SLAVE_ACK
       if(debugData.linkTestSuccess == true) { 
         transitionState(STATE_START);
       } else {
         transitionState(STATE_END);
       }
+#else
+    transitionState(STATE_START);
+#endif    
       break;
-    
+
     // T: 0 P/Y/R: Centered
     case STATE_START:
       if(curTime-captData.lastStateTransitionTime >= START_DURATION) { transitionState(STATE_TAKEOFF); };

@@ -45,6 +45,8 @@ void setup() {
   SPI.setClockDivider(SPI_CLOCK_DIV16);      // SPI at 1Mhz (on 16Mhz clock)
   delay(10);
   
+  sensorData.airspeedRaw = 0;
+  
   // init our objects
   captain.init();
   pilot.init();

@@ -84,6 +84,7 @@ void Sensors::update() {
   if (barometer.readRawValues(&temp, &pressure)) {
     // calculate altitude
     sensorData.pressAltitude = 44330 * (1.0 - pow(pressure / PRESSURE_SEA_LEVEL, 0.1903));
+ 
   }
   
   // battery
@@ -102,6 +103,7 @@ void Sensors::update() {
 
   // airspeed
   float airspeedBody[3] = {singleWire.readAirspeed(), 0, 0};
+  sensorData.airspeedRaw = airspeedBody[0];
   matrixRotate(airspeedBody, sensorData.airspeed_e); 
 }
 
